@@ -65,4 +65,4 @@ jobs:
       - name: Aplicar migrations
         run: |
           supabase link --project-ref "${{ vars.SUPABASE_PROJECT_REF }}"
-          supabase db push --remote
+          supabase db push --remote --yes
