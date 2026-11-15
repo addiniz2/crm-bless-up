@@ -29,7 +29,37 @@
   "pages": {
     "queue": {
       "title": "Minha fila",
-      "empty": "Nenhum lead na sua fila."
+      "empty": "Nenhum lead na sua fila.",
+      "tabs": {
+        "NEW": "Novos",
+        "TO_REPLY": "Para responder",
+        "IN_PROGRESS": "Em andamento",
+        "AWAITING_REPLY": "Aguardando retorno",
+        "OVERDUE": "Atrasados"
+      },
+      "emptyTab": "Nenhum lead nesta aba.",
+      "filters": "Filtros",
+      "owner": "Responsável",
+      "ownerOptions": {
+        "ALL": "Todas",
+        "ME": "Eu",
+        "OTHERS": "Outra",
+        "NONE": "Sem responsável"
+      },
+      "country": "País",
+      "leadType": "Tipo",
+      "all": "Todos",
+      "unassigned": "Sem responsável",
+      "overdue": "Atrasado",
+      "missingNextStep": "Sem próximo passo",
+      "needsCompletion": "Completar dados",
+      "lastContact": "Último contato",
+      "nextStep": "Próximo passo",
+      "never": "nunca",
+      "none": "não definido",
+      "changeStatus": "Mudar situação de {{name}}",
+      "assign": "Responsável por {{name}}",
+      "saveError": "Não foi possível salvar a mudança. Tente de novo."
     },
     "leads": {
       "title": "Leads",

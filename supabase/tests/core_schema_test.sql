@@ -91,6 +91,26 @@ end $$;
 insert into public.lead (full_name, whatsapp, country, lead_type_id, revenue_band, meta_is_organic, meta_raw)
 values ('Faixa ok', '351912345678', 'ES', 'aaaaaaaa-0000-0000-0000-000000000001', 'FROM_5K_TO_10K', false, '{"id":"1"}');
 select count(*) as tipos_iniciais from public.lead_type where name <> 'Empresa';
+
+-- BU-08: fila
+update public.lead set next_step_at = now() - interval '1 hour', queue_status = 'IN_PROGRESS' where id = 'cccccccc-0000-0000-0000-000000000002';
+do $$ begin
+  if not (select is_overdue from public.lead_queue where id = 'cccccccc-0000-0000-0000-000000000002') then raise exception 'FALHA: atrasado'; end if;
+  if exists (select 1 from public.lead_queue where id = 'cccccccc-0000-0000-0000-000000000001') then raise exception 'FALHA: convertido na fila'; end if;
+  if not exists (select 1 from public.stage_history where entity_id = 'cccccccc-0000-0000-0000-000000000002' and field = 'queue_status' and to_value = 'IN_PROGRESS') then
+    raise exception 'FALHA: histórico da situação'; end if;
+end $$;
+reset role;
+set role anon;
+do $$ begin
+  begin perform count(*) from public.lead_queue; raise exception 'FALHA: anon leu a fila';
+  exception when insufficient_privilege then null; end;
+end $$;
+reset role;
+set role authenticated; select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+do $$ begin
+  if (select count(*) from public.lead_queue) <> 0 then raise exception 'FALHA: intruso vê a fila'; end if;
+end $$;
 reset role;
 
 select 'TODOS_OS_TESTES_OK' as resultado;

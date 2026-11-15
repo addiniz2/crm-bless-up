@@ -8,6 +8,7 @@ import { LoginPage } from './pages/LoginPage'
 import { NewLeadPage } from './pages/NewLeadPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
+import { QueuePage } from './pages/QueuePage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
 
 export function AppRoutes() {
@@ -19,7 +20,7 @@ export function AppRoutes() {
         <Route path="/nova-senha" element={<ResetPasswordPage />} />
         <Route element={<RequireAuth />}>
           <Route element={<Layout />}>
-            <Route index element={<PlaceholderPage page="queue" />} />
+            <Route index element={<QueuePage />} />
             <Route path="leads" element={<LeadsPage />} />
             <Route path="leads/novo" element={<NewLeadPage />} />
             <Route path="oportunidades" element={<PlaceholderPage page="opportunities" />} />
