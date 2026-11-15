@@ -51,7 +51,18 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
+      - name: Conferir se o projeto corresponde ao ambiente
+        env:
+          REF: ${{ vars.SUPABASE_PROJECT_REF }}
+          TARGET: ${{ github.event_name == 'workflow_dispatch' && inputs.target || 'test' }}
+        run: |
+          name=$(supabase projects list --output json | jq -r --arg r "$REF" '.[] | select(.id == $r or .ref == $r) | .name')
+          echo "Ambiente: $TARGET · Projeto: $name ($REF)"
+          if [[ "$name" != *"-$TARGET" ]]; then
+            echo "::error::O projeto $name não corresponde ao ambiente $TARGET. Corrija a variável SUPABASE_PROJECT_REF do ambiente."
+            exit 1
+          fi
       - name: Aplicar migrations
         run: |
           supabase link --project-ref "${{ vars.SUPABASE_PROJECT_REF }}"
-          supabase db push
+          supabase db push --remote
