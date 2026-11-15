@@ -7,6 +7,7 @@ export type AuthState = {
   signIn: (email: string, password: string) => Promise<boolean>
   signOut: () => Promise<void>
   requestPasswordReset: (email: string) => Promise<boolean>
+  updatePassword: (password: string) => Promise<boolean>
 }
 
 export const AuthContext = createContext<AuthState | null>(null)

@@ -25,7 +25,10 @@ export function LoginPage() {
   }
 
   async function handleForgot() {
-    if (!email.trim()) return
+    if (!email.trim()) {
+      setMessage({ kind: 'info', key: 'login.emailFirst' })
+      return
+    }
     const ok = await requestPasswordReset(email.trim())
     setMessage(ok ? { kind: 'info', key: 'login.resetSent' } : { kind: 'error', key: 'login.resetError' })
   }

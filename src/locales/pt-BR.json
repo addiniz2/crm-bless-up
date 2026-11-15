@@ -22,7 +22,8 @@
     "forgot": "Esqueci minha senha",
     "resetSent": "Se o e-mail estiver cadastrado, você receberá um link para criar uma nova senha.",
     "resetError": "Não foi possível enviar o link agora. Tente novamente em alguns minutos.",
-    "notConfigured": "O CRM ainda não está ligado ao banco de dados."
+    "notConfigured": "O CRM ainda não está ligado ao banco de dados.",
+    "emailFirst": "Digite seu e-mail acima e toque de novo em “Esqueci minha senha”."
   },
   "pages": {
     "queue": {
@@ -49,5 +50,16 @@
       "title": "Página não encontrada",
       "back": "Voltar para a Minha fila"
     }
+  },
+  "resetPassword": {
+    "title": "Criar nova senha",
+    "password": "Nova senha",
+    "confirm": "Repita a nova senha",
+    "submit": "Salvar nova senha",
+    "submitting": "Salvando…",
+    "mismatch": "As senhas não são iguais.",
+    "error": "Não foi possível salvar a senha. Use uma senha mais longa ou peça um novo link.",
+    "invalidLink": "Este link é inválido ou expirou. Peça um novo na tela de entrada.",
+    "backToLogin": "Voltar para a entrada"
   }
 }

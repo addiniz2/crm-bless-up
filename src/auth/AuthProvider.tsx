@@ -35,6 +35,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       return !error
     },
+    async updatePassword(password) {
+      if (!supabase) return false
+      const { error } = await supabase.auth.updateUser({ password })
+      return !error
+    },
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

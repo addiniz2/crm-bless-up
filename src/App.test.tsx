@@ -20,6 +20,13 @@ describe('rotas', () => {
     expect(screen.getByRole('heading', { name: 'Entrar no CRM' })).toBeInTheDocument()
   })
 
+  it('link de nova senha sem sessão avisa que é inválido', () => {
+    renderAt('/nova-senha')
+    expect(screen.getByRole('heading', { name: 'Criar nova senha' })).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent('inválido ou expirou')
+    expect(screen.getByRole('link', { name: 'Voltar para a entrada' })).toHaveAttribute('href', '/entrar')
+  })
+
   it('sem banco configurado, o login avisa e não deixa enviar', () => {
     renderAt('/entrar')
     expect(screen.getByRole('alert')).toHaveTextContent('ainda não está ligado')
