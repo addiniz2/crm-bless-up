@@ -33,7 +33,14 @@
     },
     "leads": {
       "title": "Leads",
-      "empty": "Nenhum lead cadastrado."
+      "empty": "Nenhum lead cadastrado.",
+      "new": "Novo lead",
+      "created": "Lead cadastrado.",
+      "colName": "Nome",
+      "colType": "Tipo",
+      "colCountry": "País",
+      "colStage": "Etapa",
+      "colCreated": "Cadastro"
     },
     "opportunities": {
       "title": "Oportunidades",
@@ -62,5 +69,85 @@
     "error": "Não foi possível salvar a senha. Use uma senha mais longa ou peça um novo link.",
     "invalidLink": "Este link é inválido ou expirou. Peça um novo na tela de entrada.",
     "backToLogin": "Voltar para a entrada"
+  },
+  "codes": {
+    "country": {
+      "ES": "Espanha",
+      "BR": "Brasil"
+    },
+    "channel": {
+      "WEBSITE": "Site",
+      "INSTANT_FORM": "Formulário da Meta",
+      "WHATSAPP": "WhatsApp",
+      "MESSENGER": "Messenger",
+      "INSTAGRAM_DIRECT": "Direct do Instagram",
+      "PHONE_CALL": "Ligação",
+      "MANUAL": "Outro / manual",
+      "IMPORT": "Importação"
+    },
+    "mainGoal": {
+      "MORE_CUSTOMERS": "Conseguir mais clientes",
+      "BRAND": "Fortalecer a marca",
+      "ORGANIZE_MARKETING": "Organizar o marketing",
+      "TRAIN_TEAM": "Capacitar a equipe"
+    },
+    "leadStage": {
+      "NEW": "Novo",
+      "CONTACTED": "Abordado",
+      "RECONTACT": "Retomar contato",
+      "MEETING_SCHEDULED": "Reunião agendada",
+      "NO_SHOW": "No show",
+      "DISQUALIFIED": "Desqualificado",
+      "CONVERTED": "Convertido"
+    },
+    "queueStatus": {
+      "NEW": "Novo",
+      "TO_REPLY": "Para responder",
+      "IN_PROGRESS": "Em andamento",
+      "AWAITING_REPLY": "Aguardando retorno"
+    }
+  },
+  "common": {
+    "next": "Continuar",
+    "back": "Voltar",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "saving": "Salvando…",
+    "select": "Selecione",
+    "optional": "opcional",
+    "loadError": "Não foi possível carregar os dados. Verifique a conexão e tente de novo.",
+    "retry": "Tentar de novo"
+  },
+  "newLead": {
+    "title": "Novo lead",
+    "step": "Passo {{current}} de {{total}}",
+    "steps": {
+      "contact": "Contato",
+      "business": "Negócio",
+      "source": "Origem"
+    },
+    "fullName": "Nome",
+    "whatsapp": "WhatsApp com código do país",
+    "whatsappHint": "Ex.: 34 600 111 222 ou 55 11 98888 7777",
+    "email": "E-mail",
+    "country": "País",
+    "companyName": "Empresa",
+    "leadType": "Tipo de lead",
+    "noLeadTypes": "Nenhum tipo de lead cadastrado ainda. Cadastre ao menos um em Configurações.",
+    "revenueBand": "Faixa de faturamento",
+    "mainGoal": "Objetivo principal",
+    "leadSource": "Origem",
+    "captureChannel": "Canal de captação",
+    "howFound": "Como conheceu a Bless Up",
+    "notes": "Observações",
+    "assignToMe": "Atribuir a mim",
+    "duplicateTitle": "Já existe lead ativo com este WhatsApp ou e-mail",
+    "duplicateHint": "Confira antes de continuar. Se for a mesma pessoa, não cadastre de novo.",
+    "duplicateContinue": "É outra pessoa, continuar",
+    "errors": {
+      "WHATSAPP_INVALID": "WhatsApp inválido. Use o código do país e o número, só com dígitos (8 a 15).",
+      "REQUIRED_MISSING": "Faltam campos obrigatórios: nome, WhatsApp, país e tipo de lead.",
+      "UNKNOWN": "Não foi possível salvar o lead. Tente de novo."
+    }
   }
 }

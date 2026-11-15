@@ -49,4 +49,29 @@ do $$ begin
   exception when insufficient_privilege then null; end;
 end $$;
 reset role;
+
+-- BU-07: normalização e duplicados
+set role authenticated; select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+insert into public.lead (id, full_name, whatsapp, email, country, lead_type_id)
+values ('cccccccc-0000-0000-0000-000000000002','  Bia  ','+55 (11) 98888-7777',' Bia@Mail.COM ','BR','aaaaaaaa-0000-0000-0000-000000000001');
+do $$ declare r public.lead%rowtype; begin
+  select * into r from public.lead where id='cccccccc-0000-0000-0000-000000000002';
+  if r.whatsapp <> '5511988887777' or r.email <> 'bia@mail.com' or r.full_name <> 'Bia' then
+    raise exception 'FALHA: normalização (%, %, %)', r.whatsapp, r.email, r.full_name; end if;
+  if (select count(*) from public.find_lead_duplicates('0055 11 98888 7777', null)) <> 1 then raise exception 'FALHA: duplicado por WhatsApp'; end if;
+  if (select count(*) from public.find_lead_duplicates(null, 'BIA@mail.com')) <> 1 then raise exception 'FALHA: duplicado por e-mail'; end if;
+  if (select count(*) from public.find_lead_duplicates('34600111222', null)) <> 0 then raise exception 'FALHA: lead convertido contado como duplicado'; end if;
+  if (select count(*) from public.find_lead_duplicates('5511988887777', null, 'cccccccc-0000-0000-0000-000000000002')) <> 0 then raise exception 'FALHA: exclusão do próprio lead'; end if;
+  begin
+    insert into public.lead (full_name, whatsapp, country, lead_type_id) values ('Sem pais', '5511911112222', null, 'aaaaaaaa-0000-0000-0000-000000000001');
+    raise exception 'FALHA: lead manual sem país aceito';
+  exception when check_violation then null; end;
+  begin
+    insert into public.lead (full_name, whatsapp, country, lead_type_id) values ('Curto', '123', 'BR', 'aaaaaaaa-0000-0000-0000-000000000001');
+    raise exception 'FALHA: WhatsApp curto aceito';
+  exception when check_violation then null; end;
+end $$;
+select count(*) as origens from public.lead_source;
+reset role;
+
 select 'TODOS_OS_TESTES_OK' as resultado;
