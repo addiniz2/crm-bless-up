@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/context'
-import { isSupabaseConfigured } from '../lib/supabase'
+import { authLinkFailed, isSupabaseConfigured } from '../lib/supabase'
 
 export function LoginPage() {
   const { t } = useTranslation()
@@ -10,7 +10,9 @@ export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [message, setMessage] = useState<{ kind: 'error' | 'info'; key: string } | null>(null)
+  const [message, setMessage] = useState<{ kind: 'error' | 'info'; key: string } | null>(
+    authLinkFailed ? { kind: 'error', key: 'login.linkExpired' } : null,
+  )
 
   if (session) return <Navigate to="/" replace />
 
