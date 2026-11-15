@@ -2,9 +2,12 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/context'
+import { PHONE_COUNTRIES, composeWhatsapp, formatNational, type PhoneCountry } from '../lib/phone'
 import {
   COUNTRIES,
   MAIN_GOALS,
+  REVENUE_BANDS,
+  currencyOf,
   MANUAL_CHANNELS,
   createLead,
   findDuplicates,
@@ -18,7 +21,8 @@ import {
 
 const EMPTY: LeadDraft = {
   fullName: '',
-  whatsapp: '',
+  phoneCountry: 'ES',
+  phoneNational: '',
   email: '',
   country: '',
   companyName: '',
@@ -64,6 +68,8 @@ export function NewLeadPage() {
   const [duplicates, setDuplicates] = useState<Duplicate[] | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<SaveError | null>(null)
+  const [phoneCountryTouched, setPhoneCountryTouched] = useState(false)
+  const currency = currencyOf(draft.country)
 
   useEffect(() => {
     Promise.all([listLeadTypes(), listLeadSources()])
@@ -76,7 +82,24 @@ export function NewLeadPage() {
 
   function set<K extends keyof LeadDraft>(key: K, value: LeadDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }))
-    if (key === 'whatsapp' || key === 'email') setDuplicates(null)
+    if (key === 'phoneNational' || key === 'phoneCountry' || key === 'email') setDuplicates(null)
+  }
+
+  // O código do WhatsApp acompanha o país do lead, até a usuária escolher outro.
+  function setCountry(country: LeadDraft['country']) {
+    setDraft((current) => ({
+      ...current,
+      country,
+      phoneCountry: !phoneCountryTouched && country ? country : current.phoneCountry,
+      phoneNational: !phoneCountryTouched && country ? formatNational(country, current.phoneNational) : current.phoneNational,
+    }))
+    setDuplicates(null)
+  }
+
+  function setPhoneCountry(phoneCountry: PhoneCountry) {
+    setPhoneCountryTouched(true)
+    setDraft((current) => ({ ...current, phoneCountry, phoneNational: formatNational(phoneCountry, current.phoneNational) }))
+    setDuplicates(null)
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -86,7 +109,7 @@ export function NewLeadPage() {
     if (step === 0 && duplicates === null) {
       setBusy(true)
       try {
-        const found = await findDuplicates(draft.whatsapp, draft.email)
+        const found = await findDuplicates(composeWhatsapp(draft.phoneCountry, draft.phoneNational), draft.email)
         setDuplicates(found)
         if (found.length > 0) return
       } catch {
@@ -139,29 +162,8 @@ export function NewLeadPage() {
             <Field label={t('newLead.fullName')}>
               <input required autoComplete="off" value={draft.fullName} onChange={(e) => set('fullName', e.target.value)} className={inputClass} />
             </Field>
-            <Field
-              label={t('newLead.whatsapp')}
-              hint={
-                <span id="whatsapp-hint" className="mt-1 block text-xs text-muted">
-                  {t('newLead.whatsappHint')}
-                </span>
-              }
-            >
-              <input
-                required
-                inputMode="tel"
-                autoComplete="off"
-                value={draft.whatsapp}
-                onChange={(e) => set('whatsapp', e.target.value)}
-                className={inputClass}
-                aria-describedby="whatsapp-hint"
-              />
-            </Field>
-            <Field label={t('newLead.email')} optional>
-              <input type="email" autoComplete="off" value={draft.email} onChange={(e) => set('email', e.target.value)} className={inputClass} />
-            </Field>
             <Field label={t('newLead.country')}>
-              <select required value={draft.country} onChange={(e) => set('country', e.target.value as LeadDraft['country'])} className={inputClass}>
+              <select required value={draft.country} onChange={(e) => setCountry(e.target.value as LeadDraft['country'])} className={inputClass}>
                 <option value="">{t('common.select')}</option>
                 {COUNTRIES.map((code) => (
                   <option key={code} value={code}>
@@ -169,6 +171,47 @@ export function NewLeadPage() {
                   </option>
                 ))}
               </select>
+            </Field>
+            <Field label={t('newLead.phoneCountry')}>
+              <select value={draft.phoneCountry} onChange={(e) => setPhoneCountry(e.target.value as PhoneCountry)} className={inputClass}>
+                {PHONE_COUNTRIES.map((code) => (
+                  <option key={code} value={code}>
+                    {t(`codes.phoneCountry.${code}`)}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <div className="mb-4">
+              <label htmlFor="whatsapp" className="block text-sm font-medium text-ink-soft">
+                {t('newLead.whatsapp')}
+              </label>
+              <div className="mt-1 flex items-stretch">
+                {draft.phoneCountry !== 'OTHER' && (
+                  <span
+                    aria-hidden="true"
+                    className="inline-flex min-h-11 items-center rounded-l-lg border border-r-0 border-line bg-page px-3 text-base text-muted"
+                  >
+                    +{draft.phoneCountry === 'ES' ? '34' : '55'}
+                  </span>
+                )}
+                <input
+                  id="whatsapp"
+                  required
+                  inputMode="tel"
+                  autoComplete="off"
+                  value={draft.phoneNational}
+                  onChange={(e) => set('phoneNational', formatNational(draft.phoneCountry, e.target.value))}
+                  className={`${inputClass.replace('mt-1 ', '')} ${draft.phoneCountry !== 'OTHER' ? 'rounded-l-none' : ''}`}
+                  aria-describedby="whatsapp-hint"
+                />
+              </div>
+              <span id="whatsapp-hint" className="mt-1 block text-xs text-muted">
+                {t(`newLead.whatsappHint.${draft.phoneCountry}`)}
+              </span>
+            </div>
+
+            <Field label={t('newLead.email')} optional>
+              <input type="email" autoComplete="off" value={draft.email} onChange={(e) => set('email', e.target.value)} className={inputClass} />
             </Field>
           </>
         )}
@@ -198,9 +241,18 @@ export function NewLeadPage() {
                 ))}
               </select>
             </Field>
-            <Field label={t('newLead.revenueBand')} optional>
-              <input autoComplete="off" value={draft.revenueBand} onChange={(e) => set('revenueBand', e.target.value)} className={inputClass} />
-            </Field>
+            {currency && (
+              <Field label={t('newLead.revenueBand')} optional>
+                <select value={draft.revenueBand} onChange={(e) => set('revenueBand', e.target.value)} className={inputClass}>
+                  <option value="">{t('common.select')}</option>
+                  {REVENUE_BANDS.map((code) => (
+                    <option key={code} value={code}>
+                      {t(`codes.revenueBand.${currency}.${code}`)}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
             <Field label={t('newLead.mainGoal')} optional>
               <select value={draft.mainGoal} onChange={(e) => set('mainGoal', e.target.value)} className={inputClass}>
                 <option value="">{t('common.select')}</option>

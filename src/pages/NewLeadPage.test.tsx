@@ -43,8 +43,9 @@ function renderPage() {
 
 async function fillContact(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText('Nome'), 'Ana')
-  await user.type(screen.getByLabelText('WhatsApp com código do país'), '+34 600 111 222')
   await user.selectOptions(screen.getByLabelText('País'), 'ES')
+  await user.type(screen.getByLabelText('WhatsApp'), '600111222')
+  expect(screen.getByLabelText('WhatsApp')).toHaveValue('600 111 222')
   await user.click(screen.getByRole('button', { name: 'Continuar' }))
 }
 
@@ -62,6 +63,7 @@ describe('cadastro de lead', () => {
     await fillContact(user)
 
     expect(await screen.findByText('Já existe lead ativo com este WhatsApp ou e-mail')).toBeInTheDocument()
+    expect(api.findDuplicates).toHaveBeenCalledWith('34600111222', '')
     expect(screen.getByText(/Ana Souza/)).toHaveTextContent('Abordado')
     expect(screen.queryByRole('button', { name: 'Continuar' })).not.toBeInTheDocument()
 
@@ -78,6 +80,8 @@ describe('cadastro de lead', () => {
 
     await screen.findByText(/Passo 2 de 3/)
     await user.selectOptions(screen.getByLabelText('Tipo de lead'), 'type-1')
+    expect(screen.getByRole('option', { name: 'Até 5.000 €' })).toBeInTheDocument()
+    await user.selectOptions(screen.getByLabelText(/Faturamento mensal/), 'FROM_5K_TO_10K')
     await user.click(screen.getByRole('button', { name: 'Continuar' }))
 
     await user.selectOptions(screen.getByLabelText('Canal de captação'), 'PHONE_CALL')
@@ -85,7 +89,15 @@ describe('cadastro de lead', () => {
 
     expect(await screen.findByText('lista de leads')).toBeInTheDocument()
     expect(api.createLead).toHaveBeenCalledWith(
-      expect.objectContaining({ country: 'ES', leadTypeId: 'type-1', captureChannel: 'PHONE_CALL', assignToMe: true }),
+      expect.objectContaining({
+        country: 'ES',
+        phoneCountry: 'ES',
+        phoneNational: '600 111 222',
+        leadTypeId: 'type-1',
+        revenueBand: 'FROM_5K_TO_10K',
+        captureChannel: 'PHONE_CALL',
+        assignToMe: true,
+      }),
       'user-1',
     )
   })

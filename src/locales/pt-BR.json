@@ -105,6 +105,27 @@
       "TO_REPLY": "Para responder",
       "IN_PROGRESS": "Em andamento",
       "AWAITING_REPLY": "Aguardando retorno"
+    },
+    "revenueBand": {
+      "BRL": {
+        "UP_TO_5K": "Até R$ 5.000",
+        "FROM_5K_TO_10K": "De R$ 5.000 a R$ 10.000",
+        "FROM_10K_TO_20K": "De R$ 10.000 a R$ 20.000",
+        "ABOVE_20K": "Acima de R$ 20.000",
+        "NOT_INFORMED": "Não informado"
+      },
+      "EUR": {
+        "UP_TO_5K": "Até 5.000 €",
+        "FROM_5K_TO_10K": "De 5.000 € a 10.000 €",
+        "FROM_10K_TO_20K": "De 10.000 € a 20.000 €",
+        "ABOVE_20K": "Acima de 20.000 €",
+        "NOT_INFORMED": "Não informado"
+      }
+    },
+    "phoneCountry": {
+      "ES": "Espanha (+34)",
+      "BR": "Brasil (+55)",
+      "OTHER": "Outro país"
     }
   },
   "common": {
@@ -127,14 +148,18 @@
       "source": "Origem"
     },
     "fullName": "Nome",
-    "whatsapp": "WhatsApp com código do país",
-    "whatsappHint": "Ex.: 34 600 111 222 ou 55 11 98888 7777",
+    "whatsapp": "WhatsApp",
+    "whatsappHint": {
+      "ES": "9 dígitos. Ex.: 600 111 222",
+      "BR": "DDD + número. Ex.: (11) 98888-7777",
+      "OTHER": "Código do país + número, só dígitos. Ex.: 351912345678"
+    },
     "email": "E-mail",
     "country": "País",
     "companyName": "Empresa",
     "leadType": "Tipo de lead",
     "noLeadTypes": "Nenhum tipo de lead cadastrado ainda. Cadastre ao menos um em Configurações.",
-    "revenueBand": "Faixa de faturamento",
+    "revenueBand": "Faturamento mensal",
     "mainGoal": "Objetivo principal",
     "leadSource": "Origem",
     "captureChannel": "Canal de captação",
@@ -145,9 +170,10 @@
     "duplicateHint": "Confira antes de continuar. Se for a mesma pessoa, não cadastre de novo.",
     "duplicateContinue": "É outra pessoa, continuar",
     "errors": {
-      "WHATSAPP_INVALID": "WhatsApp inválido. Use o código do país e o número, só com dígitos (8 a 15).",
+      "WHATSAPP_INVALID": "WhatsApp inválido para o país escolhido. Confira a quantidade de dígitos.",
       "REQUIRED_MISSING": "Faltam campos obrigatórios: nome, WhatsApp, país e tipo de lead.",
       "UNKNOWN": "Não foi possível salvar o lead. Tente de novo."
-    }
+    },
+    "phoneCountry": "Código do país do WhatsApp"
   }
 }

@@ -1,16 +1,26 @@
+import { composeWhatsapp, type PhoneCountry } from './phone'
 import { supabase } from './supabase'
 
 // Códigos gravados no banco. Os rótulos ficam em src/locales/pt-BR.json.
 export const COUNTRIES = ['ES', 'BR'] as const
 export const MANUAL_CHANNELS = ['WHATSAPP', 'INSTAGRAM_DIRECT', 'MESSENGER', 'PHONE_CALL', 'MANUAL'] as const
+export const REVENUE_BANDS = ['UP_TO_5K', 'FROM_5K_TO_10K', 'FROM_10K_TO_20K', 'ABOVE_20K', 'NOT_INFORMED'] as const
 export const MAIN_GOALS = ['MORE_CUSTOMERS', 'BRAND', 'ORGANIZE_MARKETING', 'TRAIN_TEAM'] as const
 
 export type Country = (typeof COUNTRIES)[number]
+
+// A faixa de faturamento é mensal e a moeda segue o país do lead.
+export function currencyOf(country: Country | '' | null): 'BRL' | 'EUR' | null {
+  if (country === 'BR') return 'BRL'
+  if (country === 'ES') return 'EUR'
+  return null
+}
 export type ListItem = { id: string; name: string }
 
 export type LeadDraft = {
   fullName: string
-  whatsapp: string
+  phoneCountry: PhoneCountry
+  phoneNational: string
   email: string
   country: Country | ''
   companyName: string
@@ -71,7 +81,7 @@ export async function findDuplicates(whatsapp: string, email: string): Promise<D
 // O banco normaliza e valida; aqui só traduzimos o erro do banco para uma chave de mensagem.
 export function saveErrorFrom(error: { code?: string; message?: string }): SaveError {
   const message = error.message ?? ''
-  if (message.includes('lead_whatsapp_check')) return 'WHATSAPP_INVALID'
+  if (message.includes('lead_whatsapp_check') || message.includes('lead_whatsapp_country_length')) return 'WHATSAPP_INVALID'
   if (message.includes('lead_required_fields') || error.code === '23502') return 'REQUIRED_MISSING'
   return 'UNKNOWN'
 }
@@ -81,7 +91,7 @@ export async function createLead(draft: LeadDraft, userId: string): Promise<{ id
     .from('lead')
     .insert({
       full_name: draft.fullName,
-      whatsapp: draft.whatsapp,
+      whatsapp: composeWhatsapp(draft.phoneCountry, draft.phoneNational),
       email: draft.email || null,
       country: draft.country || null,
       company_name: draft.companyName || null,

@@ -72,6 +72,25 @@ do $$ declare r public.lead%rowtype; begin
   exception when check_violation then null; end;
 end $$;
 select count(*) as origens from public.lead_source;
+
+-- BU-28/29: faixa de faturamento e tamanho do WhatsApp por país
+do $$ begin
+  begin
+    insert into public.lead (full_name, whatsapp, country, lead_type_id, revenue_band) values ('Faixa', '34600111333', 'ES', 'aaaaaaaa-0000-0000-0000-000000000001', 'Até 5 mil');
+    raise exception 'FALHA: faixa como rótulo aceita';
+  exception when check_violation then null; end;
+  begin
+    insert into public.lead (full_name, whatsapp, country, lead_type_id) values ('ES curto', '3460011122', 'ES', 'aaaaaaaa-0000-0000-0000-000000000001');
+    raise exception 'FALHA: WhatsApp espanhol com 8 dígitos aceito';
+  exception when check_violation then null; end;
+  begin
+    insert into public.lead (full_name, whatsapp, country, lead_type_id) values ('BR longo', '55119888877776', 'BR', 'aaaaaaaa-0000-0000-0000-000000000001');
+    raise exception 'FALHA: WhatsApp brasileiro com 12 dígitos aceito';
+  exception when check_violation then null; end;
+end $$;
+insert into public.lead (full_name, whatsapp, country, lead_type_id, revenue_band, meta_is_organic, meta_raw)
+values ('Faixa ok', '351912345678', 'ES', 'aaaaaaaa-0000-0000-0000-000000000001', 'FROM_5K_TO_10K', false, '{"id":"1"}');
+select count(*) as tipos_iniciais from public.lead_type where name <> 'Empresa';
 reset role;
 
 select 'TODOS_OS_TESTES_OK' as resultado;
