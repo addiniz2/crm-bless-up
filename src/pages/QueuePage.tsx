@@ -184,7 +184,7 @@ export function QueuePage() {
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <Link to={`/leads/${row.id}`} className="block truncate font-medium text-ink hover:text-action">
+                  <Link to={`/leads/${row.id}`} state={{ from: '/' }} className="block truncate font-medium text-action underline-offset-2 hover:underline">
                     {row.full_name}
                   </Link>
                   <p className="truncate text-sm text-muted">
@@ -228,7 +228,7 @@ export function QueuePage() {
                 </div>
               </dl>
 
-              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <select
                   aria-label={t('pages.queue.changeStatus', { name: row.full_name })}
                   value={row.queue_status}
@@ -254,6 +254,14 @@ export function QueuePage() {
                     </option>
                   ))}
                 </select>
+                <Link
+                  to={`/leads/${row.id}`}
+                  state={{ from: '/' }}
+                  aria-label={t('pages.queue.openLeadOf', { name: row.full_name })}
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg bg-action px-3 text-sm font-medium text-white"
+                >
+                  {t('pages.queue.openLead')}
+                </Link>
               </div>
             </li>
           ))}

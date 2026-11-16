@@ -61,7 +61,9 @@
       "assign": "Responsável por {{name}}",
       "saveError": "Não foi possível salvar a mudança. Tente de novo.",
       "pendingDelivery": "Envio não confirmado",
-      "whatsappInvalid": "WhatsApp inválido"
+      "whatsappInvalid": "WhatsApp inválido",
+      "openLead": "Abrir ficha",
+      "openLeadOf": "Abrir ficha de {{name}}"
     },
     "leads": {
       "title": "Leads",
@@ -405,6 +407,7 @@
       "LEAD_NOT_FOUND": "Lead não encontrado.",
       "UNKNOWN": "Não foi possível converter. Tente de novo."
     },
-    "convertedTo": "Ver oportunidade"
+    "convertedTo": "Ver oportunidade",
+    "backToQueue": "Voltar para Minha fila"
   }
 }

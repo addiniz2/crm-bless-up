@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Dialog } from '../components/Dialog'
 import { currencyOf } from '../lib/leads'
@@ -46,6 +46,7 @@ function Info({ label, children }: { label: string; children: ReactNode }) {
 // Ficha do lead (BU-10): dados, linha do tempo, Registrar contato, Iniciar conversa e Desqualificar.
 export function LeadDetailPage() {
   const { id = '' } = useParams()
+  const fromQueue = (useLocation().state as { from?: string } | null)?.from === '/'
   const { t, i18n } = useTranslation()
   const [lead, setLead] = useState<LeadDetail | null | undefined>(undefined)
   const [timeline, setTimeline] = useState<TimelineItem[]>([])
@@ -112,8 +113,8 @@ export function LeadDetailPage() {
 
   return (
     <section className="mx-auto max-w-4xl">
-      <Link to="/leads" className="mb-3 inline-flex min-h-11 items-center text-sm text-action">
-        ← {t('leadDetail.back')}
+      <Link to={fromQueue ? '/' : '/leads'} className="mb-3 inline-flex min-h-11 items-center text-sm text-action">
+        ← {t(fromQueue ? 'leadDetail.backToQueue' : 'leadDetail.back')}
       </Link>
 
       <header className="mb-4">
