@@ -189,4 +189,20 @@ end $$;
 select public.opportunity_indicators() as indicadores_oportunidade;
 reset role;
 
+-- BU-12: clientes
+set role authenticated; select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+do $$ declare v jsonb; begin
+  if (select count(*) from public.customer_list) < 1 then raise exception 'FALHA: lista de clientes'; end if;
+  v := public.customer_indicators();
+  if (v ->> 'active_customers')::int < 1 then raise exception 'FALHA: clientes ativos'; end if;
+  if (select count(*) from public.reason where kind = 'LOSS') < 7 then raise exception 'FALHA: motivos de perda'; end if;
+end $$;
+select public.customer_indicators() as indicadores_clientes;
+reset role;
+set role authenticated; select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+do $$ begin
+  if (select count(*) from public.customer_list) <> 0 then raise exception 'FALHA: intruso vê clientes'; end if;
+end $$;
+reset role;
+
 select 'TODOS_OS_TESTES_OK' as resultado;

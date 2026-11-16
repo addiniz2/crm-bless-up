@@ -125,7 +125,20 @@
     },
     "customers": {
       "title": "Clientes",
-      "empty": "Nenhum cliente na carteira."
+      "empty": "Nenhum cliente na carteira.",
+      "activeCustomers": "Clientes ativos",
+      "monthlyRevenue": "Receita mensal",
+      "noneYet": "nenhuma",
+      "monthlyFee": "Mensalidade",
+      "since": "Cliente desde {{date}}",
+      "renewal": "Renovação: {{date}}",
+      "owner": "Responsável",
+      "history": "Ver histórico",
+      "filterStatus": "Situação",
+      "all": "Todas",
+      "detailSoon": "A ficha completa do cliente, com saúde, pausa e cancelamento, chega na próxima etapa.",
+      "revenueLine_one": "{{value}}/mês · {{count}} cliente",
+      "revenueLine_other": "{{value}}/mês · {{count}} clientes"
     },
     "settings": {
       "title": "Configurações",
@@ -229,6 +242,12 @@
     "currency": {
       "EUR": "Euro (€)",
       "BRL": "Real (R$)"
+    },
+    "customerStatus": {
+      "ACTIVE": "Ativo",
+      "PAUSED": "Pausado",
+      "CANCELLATION_NOTICE": "Aviso de cancelamento",
+      "CANCELLED": "Cancelado"
     }
   },
   "common": {
