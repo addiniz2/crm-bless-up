@@ -5,9 +5,10 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
 
-// Lido antes de o cliente do Supabase limpar o endereço: o link de recuperação de senha traz type=recovery.
+// Lido antes de o cliente do Supabase limpar o endereço. Os links de recuperação de senha (type=recovery)
+// e de convite (type=invite) levam à página de criar senha.
 export const openedFromRecoveryLink =
-  typeof window !== 'undefined' && /(^|[#&?])type=recovery(&|$)/.test(window.location.hash)
+  typeof window !== 'undefined' && /(^|[#&?])type=(recovery|invite)(&|$)/.test(window.location.hash)
 
 // Link de e-mail vencido ou já usado: o Supabase devolve error_code no endereço e não cria sessão.
 export const authLinkFailed =
