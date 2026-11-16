@@ -3,7 +3,9 @@ import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { BOARD_STAGES, changeLeadStage, getIndicators, type BoardStage, type Indicators, type StageError } from '../lib/pipeline'
 import { LeadFilters } from '../components/LeadFilters'
+import { Loading } from '../components/Loading'
 import { StageBoard } from '../components/StageBoard'
+import { useToast } from '../components/Toast'
 import { listLeadTypes, type ListItem } from '../lib/leads'
 import { NO_FILTERS, applyFilters, listQueue, listUsers, type AppUser, type QueueFilters, type QueueRow } from '../lib/queue'
 
@@ -42,6 +44,8 @@ export function LeadsPage() {
     void fetchAll()
   }, [fetchAll])
 
+  const toast = useToast()
+
   async function move(leadId: string, stage: BoardStage) {
     const current = rows?.find((row) => row.id === leadId)
     if (!current || current.stage === stage) return
@@ -50,6 +54,7 @@ export function LeadsPage() {
     setRows((previous) => previous?.map((row) => (row.id === leadId ? { ...row, stage } : row)) ?? null)
     const error = await changeLeadStage(leadId, stage)
     if (error) setStageError(error)
+    else toast.show(t('toast.stageChanged'))
     await fetchAll()
   }
 
@@ -110,6 +115,8 @@ export function LeadsPage() {
       </div>
 
       <LeadFilters filters={filters} onChange={setFilters} users={users} types={types} />
+
+      {!rows && !failed && <Loading />}
 
       {visible && visible.length === 0 && (
         <div className="rounded-card border border-line bg-card p-6 text-muted">

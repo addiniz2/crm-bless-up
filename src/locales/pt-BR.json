@@ -449,5 +449,17 @@
     "hint": "Digite pelo menos 2 letras ou 4 números.",
     "empty": "Nenhum lead encontrado.",
     "open": "Buscar"
+  },
+  "toast": {
+    "contactSaved": "Contato registrado.",
+    "deliveryConfirmed": "Envio confirmado.",
+    "stageChanged": "Etapa alterada.",
+    "statusChanged": "Situação alterada.",
+    "ownerChanged": "Responsável alterado.",
+    "disqualified": "Lead desqualificado.",
+    "contactUpdated": "Contato corrigido.",
+    "converted": "Lead convertido em conta e oportunidade.",
+    "opportunityStageChanged": "Etapa da oportunidade alterada.",
+    "opportunityLost": "Oportunidade marcada como perdida."
   }
 }

@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/context'
 import { ContactDialog, ConversationDialog } from '../components/LeadActionDialogs'
 import { LeadFilters } from '../components/LeadFilters'
+import { Loading } from '../components/Loading'
+import { useToast } from '../components/Toast'
 import { listLeadTypes, type ListItem } from '../lib/leads'
 import {
   QUEUE_STATUSES,
@@ -67,10 +69,13 @@ export function QueuePage() {
   const dateTime = new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
   const date = new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: '2-digit', year: 'numeric' })
 
-  async function change(action: () => Promise<void>) {
+  const toast = useToast()
+
+  async function change(action: () => Promise<void>, successKey: string) {
     setSaveFailed(false)
     try {
       await action()
+      toast.show(t(successKey))
       await fetchAll()
     } catch {
       setSaveFailed(true)
@@ -120,6 +125,8 @@ export function QueuePage() {
           {t('pages.queue.saveError')}
         </p>
       )}
+
+      {!rows && !loadFailed && <Loading />}
 
       {rows && visible.length === 0 && (
         <div className="rounded-card border border-line bg-card p-6 text-muted">{t('pages.queue.emptyTab')}</div>
@@ -183,7 +190,7 @@ export function QueuePage() {
                 <select
                   aria-label={t('pages.queue.changeStatus', { name: row.full_name })}
                   value={row.queue_status}
-                  onChange={(e) => void change(() => setQueueStatus(row.id, e.target.value as QueueStatus))}
+                  onChange={(e) => void change(() => setQueueStatus(row.id, e.target.value as QueueStatus), 'toast.statusChanged')}
                   className={`${selectClass} sm:max-w-56`}
                 >
                   {QUEUE_STATUSES.map((status) => (
@@ -195,7 +202,7 @@ export function QueuePage() {
                 <select
                   aria-label={t('pages.queue.assign', { name: row.full_name })}
                   value={row.owner_id ?? ''}
-                  onChange={(e) => void change(() => setOwner(row.id, e.target.value || null))}
+                  onChange={(e) => void change(() => setOwner(row.id, e.target.value || null), 'toast.ownerChanged')}
                   className={`${selectClass} sm:max-w-56`}
                 >
                   <option value="">{t('pages.queue.unassigned')}</option>

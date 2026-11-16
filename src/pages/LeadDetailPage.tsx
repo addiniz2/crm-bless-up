@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Dialog } from '../components/Dialog'
+import { useToast } from '../components/Toast'
 import { ContactDialog, ConversationDialog, DeliveryConfirmation } from '../components/LeadActionDialogs'
 import { currencyOf } from '../lib/leads'
 import { ACCOUNT_KINDS, CURRENCIES, convertLead, type AccountKind, type ConvertError, type Currency } from '../lib/opportunities'
@@ -43,6 +44,7 @@ export function LeadDetailPage() {
   const [failed, setFailed] = useState(false)
   const [panel, setPanel] = useState<Panel>(null)
   const [stageError, setStageError] = useState<StageError | null>(null)
+  const toast = useToast()
 
   const fetchAll = useCallback(
     () =>
@@ -147,6 +149,7 @@ export function LeadDetailPage() {
               setStageError(null)
               const result = await changeLeadStage(lead.id, event.target.value)
               if (result) setStageError(result)
+              else toast.show(t('toast.stageChanged'))
               await fetchAll()
             }}
             className={inputClass}
@@ -353,6 +356,8 @@ function DisqualifyDialog({ leadId, onClose, onDone }: { leadId: string; onClose
       .catch(() => setReasons([]))
   }, [])
 
+  const toast = useToast()
+
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     const result = await changeLeadStage(leadId, 'DISQUALIFIED', reasonId || undefined)
@@ -360,6 +365,7 @@ function DisqualifyDialog({ leadId, onClose, onDone }: { leadId: string; onClose
       setError(result)
       return
     }
+    toast.show(t('toast.disqualified'))
     onClose()
     await onDone()
   }
@@ -407,6 +413,8 @@ function EditContactDialog({ lead, onClose, onDone }: { lead: LeadDetail; onClos
   const [error, setError] = useState<SaveError | null>(null)
   const [busy, setBusy] = useState(false)
 
+  const toast = useToast()
+
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     setBusy(true)
@@ -416,6 +424,7 @@ function EditContactDialog({ lead, onClose, onDone }: { lead: LeadDetail; onClos
       setError(result)
       return
     }
+    toast.show(t('toast.contactUpdated'))
     onClose()
     await onDone()
   }
@@ -480,6 +489,8 @@ function ConvertDialog({ lead, onClose }: { lead: LeadDetail; onClose: () => voi
   const [error, setError] = useState<ConvertError | null>(null)
   const [busy, setBusy] = useState(false)
 
+  const toast = useToast()
+
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     setBusy(true)
@@ -489,6 +500,7 @@ function ConvertDialog({ lead, onClose }: { lead: LeadDetail; onClose: () => voi
       setError(result.error)
       return
     }
+    toast.show(t('toast.converted'))
     navigate('/oportunidades', { state: { opportunityId: result.opportunityId } })
   }
 

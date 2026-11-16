@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthProvider'
+import { ToastProvider } from './components/Toast'
 import { RecoveryRedirect } from './auth/RecoveryRedirect'
 import { RequireAuth } from './auth/RequireAuth'
 import { Layout } from './components/Layout'
@@ -43,9 +44,11 @@ export function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      <ToastProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </ToastProvider>
     </AuthProvider>
   )
 }

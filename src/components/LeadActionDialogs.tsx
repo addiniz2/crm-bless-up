@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Dialog } from './Dialog'
+import { useToast } from './Toast'
 import {
   ACTIVITY_KINDS,
   NOT_SENT_REASONS,
@@ -138,6 +139,8 @@ export function ContactDialog({ leadId, onClose, onDone }: { leadId: string; onC
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<ActivityError | null>(null)
 
+  const toast = useToast()
+
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     setBusy(true)
@@ -147,6 +150,7 @@ export function ContactDialog({ leadId, onClose, onDone }: { leadId: string; onC
       setError(result)
       return
     }
+    toast.show(t('toast.contactSaved'))
     onClose()
     await onDone()
   }
@@ -197,6 +201,8 @@ export function DeliveryConfirmation({ activityId, onDone }: { activityId: strin
   const [error, setError] = useState<ActivityError | null>(null)
   const [busy, setBusy] = useState(false)
 
+  const toast = useToast()
+
   async function confirm(sent: boolean) {
     setBusy(true)
     const result = await confirmConversation(activityId, sent, reason)
@@ -205,6 +211,7 @@ export function DeliveryConfirmation({ activityId, onDone }: { activityId: strin
       setError(result)
       return
     }
+    toast.show(t('toast.deliveryConfirmed'))
     await onDone()
   }
 

@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Dialog } from '../components/Dialog'
+import { Loading } from '../components/Loading'
 import { StageBoard } from '../components/StageBoard'
+import { useToast } from '../components/Toast'
 import type { ListItem } from '../lib/leads'
 import {
   OPPORTUNITY_STAGES,
@@ -52,6 +54,8 @@ export function OpportunitiesPage() {
     void fetchAll()
   }, [fetchAll])
 
+  const toast = useToast()
+
   async function move(card: OpportunityCard, stage: OpportunityStage) {
     if (card.stage === stage) return
     setError(null)
@@ -62,6 +66,7 @@ export function OpportunitiesPage() {
     if (stage === 'WON' && !window.confirm(t('pages.opportunities.wonConfirm', { name: card.account_name }))) return
     const result = await changeOpportunityStage(card.id, stage)
     if (result) setError(result)
+    else toast.show(t('toast.opportunityStageChanged'))
     await fetchAll()
   }
 
@@ -93,6 +98,8 @@ export function OpportunitiesPage() {
           </button>
         </div>
       )}
+
+      {!cards && !failed && <Loading />}
 
       {cards && cards.length === 0 && (
         <div className="rounded-card border border-line bg-card p-6 text-muted">{t('pages.opportunities.empty')}</div>
@@ -196,6 +203,8 @@ function LossDialog({ card, onClose, onDone }: { card: OpportunityCard; onClose:
       .catch(() => setReasons([]))
   }, [])
 
+  const toast = useToast()
+
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     const result = await changeOpportunityStage(card.id, 'LOST', reasonId || undefined)
@@ -203,6 +212,7 @@ function LossDialog({ card, onClose, onDone }: { card: OpportunityCard; onClose:
       setError(result)
       return
     }
+    toast.show(t('toast.opportunityLost'))
     await onDone()
   }
 
