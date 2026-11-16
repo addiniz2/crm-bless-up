@@ -67,4 +67,4 @@ jobs:
           supabase link --project-ref "${{ vars.SUPABASE_PROJECT_REF }}"
           supabase db push --remote --yes
       - name: Publicar Edge Functions
-        run: supabase functions deploy --use-api
+        run: supabase functions deploy --use-api --yes
