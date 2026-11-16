@@ -135,7 +135,14 @@
       "all": "Todas",
       "detailSoon": "A ficha completa do cliente, com saúde, pausa e cancelamento, chega na próxima etapa.",
       "revenueLine_one": "{{value}}/mês · {{count}} cliente",
-      "revenueLine_other": "{{value}}/mês · {{count}} clientes"
+      "revenueLine_other": "{{value}}/mês · {{count}} clientes",
+      "filters": "Filtros",
+      "search": "Nome",
+      "searchPlaceholder": "Buscar por nome ou contato",
+      "filterOwner": "Responsável",
+      "ownerAll": "Todos",
+      "unassigned": "Sem responsável",
+      "emptyFiltered": "Nenhum cliente com estes filtros."
     },
     "settings": {
       "title": "Configurações",

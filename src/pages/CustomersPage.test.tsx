@@ -51,5 +51,14 @@ describe('clientes', () => {
     await user.selectOptions(screen.getByLabelText('Situação'), 'PAUSED')
     expect(screen.queryByText('Café Ana')).not.toBeInTheDocument()
     expect(screen.getByText('Loja Bia')).toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText('Situação'), '')
+    await user.type(screen.getByLabelText('Nome'), 'cafe')
+    expect(screen.getByText('Café Ana')).toBeInTheDocument()
+    expect(screen.queryByText('Loja Bia')).not.toBeInTheDocument()
+
+    await user.clear(screen.getByLabelText('Nome'))
+    await user.selectOptions(screen.getByLabelText('Responsável'), 'NONE')
+    expect(screen.getByText('Nenhum cliente com estes filtros.')).toBeInTheDocument()
   })
 })

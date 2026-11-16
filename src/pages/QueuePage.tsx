@@ -173,12 +173,12 @@ export function QueuePage() {
                 </div>
               </dl>
 
-              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
                 <select
                   aria-label={t('pages.queue.changeStatus', { name: row.full_name })}
                   value={row.queue_status}
                   onChange={(e) => void change(() => setQueueStatus(row.id, e.target.value as QueueStatus))}
-                  className={selectClass}
+                  className={`${selectClass} sm:max-w-56`}
                 >
                   {QUEUE_STATUSES.map((status) => (
                     <option key={status} value={status}>
@@ -190,7 +190,7 @@ export function QueuePage() {
                   aria-label={t('pages.queue.assign', { name: row.full_name })}
                   value={row.owner_id ?? ''}
                   onChange={(e) => void change(() => setOwner(row.id, e.target.value || null))}
-                  className={selectClass}
+                  className={`${selectClass} sm:max-w-56`}
                 >
                   <option value="">{t('pages.queue.unassigned')}</option>
                   {users.map((user) => (
@@ -203,7 +203,7 @@ export function QueuePage() {
                   to={`/leads/${row.id}`}
                   state={{ from: '/' }}
                   aria-label={t('pages.queue.openLeadOf', { name: row.full_name })}
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg bg-action px-3 text-sm font-medium text-white"
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-action px-4 text-sm font-medium whitespace-nowrap text-action hover:bg-selected sm:ml-auto"
                 >
                   {t('pages.queue.openLead')}
                 </Link>

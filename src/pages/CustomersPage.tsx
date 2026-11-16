@@ -21,6 +21,8 @@ export function CustomersPage() {
   const [users, setUsers] = useState<AppUser[]>([])
   const [failed, setFailed] = useState(false)
   const [status, setStatus] = useState<CustomerStatus | ''>('')
+  const [search, setSearch] = useState('')
+  const [owner, setOwner] = useState<'ALL' | 'NONE' | (string & {})>('ALL')
 
   const fetchAll = useCallback(
     () =>
@@ -39,7 +41,18 @@ export function CustomersPage() {
     void fetchAll()
   }, [fetchAll])
 
-  const visible = useMemo(() => (rows ?? []).filter((row) => !status || row.status === status), [rows, status])
+  // Busca sem diferenciar maiúsculas nem acentos (ex.: "gomez" encontra "Gómez").
+  const normalize = (text: string) => text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
+  const visible = useMemo(() => {
+    const term = normalize(search.trim())
+    return (rows ?? []).filter((row) => {
+      if (status && row.status !== status) return false
+      if (owner === 'NONE' && row.owner_id !== null) return false
+      if (owner !== 'ALL' && owner !== 'NONE' && row.owner_id !== owner) return false
+      if (term && !normalize(`${row.name} ${row.contact_name ?? ''}`).includes(term)) return false
+      return true
+    })
+  }, [rows, status, owner, search])
   const date = new Intl.DateTimeFormat(i18n.language, { dateStyle: 'short', timeZone: 'UTC' })
   const ownerName = (id: string | null) => users.find((user) => user.id === id)?.full_name
 
@@ -77,23 +90,52 @@ export function CustomersPage() {
         </div>
       )}
 
-      <label className="mb-4 block max-w-xs text-sm text-ink-soft">
-        {t('pages.customers.filterStatus')}
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value as CustomerStatus | '')}
-          className="mt-1 min-h-11 w-full rounded-lg border border-line bg-card px-3 text-sm"
-        >
-          <option value="">{t('pages.customers.all')}</option>
-          {CUSTOMER_STATUSES.map((code) => (
-            <option key={code} value={code}>
-              {t(`codes.customerStatus.${code}`)}
-            </option>
-          ))}
-        </select>
-      </label>
+      <fieldset className="mb-4 grid grid-cols-1 gap-3 rounded-card border border-line bg-card p-4 sm:grid-cols-3">
+        <legend className="px-1 text-sm font-medium text-ink-soft">{t('pages.customers.filters')}</legend>
+        <label className="text-sm text-ink-soft">
+          {t('pages.customers.search')}
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('pages.customers.searchPlaceholder')}
+            className="mt-1 min-h-11 w-full rounded-lg border border-line bg-card px-3 text-sm"
+          />
+        </label>
+        <label className="text-sm text-ink-soft">
+          {t('pages.customers.filterStatus')}
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as CustomerStatus | '')}
+            className="mt-1 min-h-11 w-full rounded-lg border border-line bg-card px-3 text-sm"
+          >
+            <option value="">{t('pages.customers.all')}</option>
+            {CUSTOMER_STATUSES.map((code) => (
+              <option key={code} value={code}>
+                {t(`codes.customerStatus.${code}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-sm text-ink-soft">
+          {t('pages.customers.filterOwner')}
+          <select value={owner} onChange={(e) => setOwner(e.target.value)} className="mt-1 min-h-11 w-full rounded-lg border border-line bg-card px-3 text-sm">
+            <option value="ALL">{t('pages.customers.ownerAll')}</option>
+            <option value="NONE">{t('pages.customers.unassigned')}</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.full_name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </fieldset>
 
-      {rows && visible.length === 0 && <div className="rounded-card border border-line bg-card p-6 text-muted">{t('pages.customers.empty')}</div>}
+      {rows && visible.length === 0 && (
+        <div className="rounded-card border border-line bg-card p-6 text-muted">
+          {t(rows.length > 0 ? 'pages.customers.emptyFiltered' : 'pages.customers.empty')}
+        </div>
+      )}
 
       {visible.length > 0 && (
         <ul className="divide-y divide-line rounded-card border border-line bg-card">
