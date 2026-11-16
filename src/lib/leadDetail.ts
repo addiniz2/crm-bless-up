@@ -32,6 +32,7 @@ export type LeadDetail = {
   created_at: string
   created_by: string | null
   needs_completion: boolean
+  converted_opportunity_id: string | null
   form_answers: Record<string, unknown> | null
   utm_source: string | null
   utm_medium: string | null

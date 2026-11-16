@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Dialog } from '../components/Dialog'
 import { currencyOf } from '../lib/leads'
+import { ACCOUNT_KINDS, CURRENCIES, convertLead, type AccountKind, type ConvertError, type Currency } from '../lib/opportunities'
 import {
   ACTIVITY_KINDS,
   NOT_SENT_REASONS,
@@ -27,7 +28,7 @@ import { changeLeadStage, listReasons, type StageError } from '../lib/pipeline'
 import { listUsers, type AppUser } from '../lib/queue'
 import type { ListItem, SaveError } from '../lib/leads'
 
-type Panel = 'conversation' | 'contact' | 'disqualify' | 'editContact' | null
+type Panel = 'conversation' | 'contact' | 'disqualify' | 'editContact' | 'convert' | null
 
 const inputClass =
   'mt-1 block min-h-11 w-full rounded-lg border border-line bg-card px-3 text-base text-ink focus:border-action focus:outline-none'
@@ -124,7 +125,16 @@ export function LeadDetailPage() {
             {userName(lead.owner_id) ?? t('pages.queue.unassigned')}
           </span>
         </p>
-        {readOnly && <p className="mt-3 rounded-lg bg-page p-3 text-sm text-muted">{t('leadDetail.readOnly')}</p>}
+        {readOnly && (
+          <p className="mt-3 rounded-lg bg-page p-3 text-sm text-muted">
+            {t('leadDetail.readOnly')}{' '}
+            {lead.converted_opportunity_id && (
+              <Link to="/oportunidades" state={{ opportunityId: lead.converted_opportunity_id }} className="font-medium text-action">
+                {t('leadDetail.convertedTo')}
+              </Link>
+            )}
+          </p>
+        )}
         {!closed && lead.whatsapp_status === 'INVALID' && (
           <p role="alert" className="mt-3 rounded-lg bg-risk-bg p-3 text-sm text-risk">
             {t('leadDetail.whatsappInvalid')}
@@ -156,7 +166,7 @@ export function LeadDetailPage() {
           <button type="button" onClick={() => setPanel('disqualify')} className={`${actionClass} border border-line text-ink-soft`}>
             {t('leadDetail.actions.disqualify')}
           </button>
-          <button type="button" disabled title={t('leadDetail.convertSoon')} className={`${actionClass} border border-line text-ink-soft`}>
+          <button type="button" onClick={() => setPanel('convert')} className={`${actionClass} border border-healthy text-healthy`}>
             {t('leadDetail.actions.convert')}
           </button>
         </div>
@@ -298,6 +308,7 @@ export function LeadDetailPage() {
         <ConversationDialog lead={lead} ownerName={userName(lead.owner_id) ?? ''} onClose={() => setPanel(null)} onDone={fetchAll} />
       )}
       {panel === 'contact' && <ContactDialog leadId={lead.id} onClose={() => setPanel(null)} onDone={fetchAll} />}
+      {panel === 'convert' && <ConvertDialog lead={lead} onClose={() => setPanel(null)} />}
       {panel === 'editContact' && <EditContactDialog lead={lead} onClose={() => setPanel(null)} onDone={fetchAll} />}
       {panel === 'disqualify' && <DisqualifyDialog leadId={lead.id} onClose={() => setPanel(null)} onDone={fetchAll} />}
     </section>
@@ -655,6 +666,80 @@ function EditContactDialog({ lead, onClose, onDone }: { lead: LeadDetail; onClos
         )}
         <button type="submit" disabled={busy} className="min-h-11 w-full rounded-lg bg-action font-medium text-white disabled:opacity-60">
           {busy ? t('common.saving') : t('leadDetail.editContact.save')}
+        </button>
+      </form>
+    </Dialog>
+  )
+}
+
+function ConvertDialog({ lead, onClose }: { lead: LeadDetail; onClose: () => void }) {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const [accountName, setAccountName] = useState(lead.company_name ?? lead.full_name)
+  const [accountKind, setAccountKind] = useState<AccountKind>(lead.company_name ? 'ORGANIZATION' : 'PERSON')
+  const [monthlyValue, setMonthlyValue] = useState('')
+  const [currency, setCurrency] = useState<Currency>(currencyOf(lead.country) ?? 'EUR')
+  const [expectedCloseDate, setExpectedCloseDate] = useState('')
+  const [error, setError] = useState<ConvertError | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault()
+    setBusy(true)
+    const result = await convertLead({ leadId: lead.id, accountName, accountKind, monthlyValue, currency, expectedCloseDate })
+    setBusy(false)
+    if (result.error) {
+      setError(result.error)
+      return
+    }
+    navigate('/oportunidades', { state: { opportunityId: result.opportunityId } })
+  }
+
+  return (
+    <Dialog title={t('leadDetail.convertDialog.title')} onClose={onClose}>
+      <form onSubmit={onSubmit}>
+        <p className="mb-4 text-sm text-muted">{t('leadDetail.convertDialog.hint')}</p>
+        <label className="mb-4 block text-sm font-medium text-ink-soft">
+          {t('leadDetail.convertDialog.accountName')}
+          <input required value={accountName} onChange={(e) => setAccountName(e.target.value)} className={inputClass} />
+        </label>
+        <label className="mb-4 block text-sm font-medium text-ink-soft">
+          {t('leadDetail.convertDialog.accountKind')}
+          <select value={accountKind} onChange={(e) => setAccountKind(e.target.value as AccountKind)} className={inputClass}>
+            {ACCOUNT_KINDS.map((code) => (
+              <option key={code} value={code}>
+                {t(`codes.accountKind.${code}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="mb-4 grid grid-cols-[1fr_auto] gap-2">
+          <label className="block text-sm font-medium text-ink-soft">
+            {t('leadDetail.convertDialog.monthlyValue')} <span className="font-normal text-muted">({t('common.optional')})</span>
+            <input type="number" min="0" step="0.01" inputMode="decimal" value={monthlyValue} onChange={(e) => setMonthlyValue(e.target.value)} className={inputClass} />
+          </label>
+          <label className="block text-sm font-medium text-ink-soft">
+            {t('leadDetail.convertDialog.currency')}
+            <select value={currency} onChange={(e) => setCurrency(e.target.value as Currency)} className={inputClass}>
+              {CURRENCIES.map((code) => (
+                <option key={code} value={code}>
+                  {t(`codes.currency.${code}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <label className="mb-4 block text-sm font-medium text-ink-soft">
+          {t('leadDetail.convertDialog.expectedCloseDate')} <span className="font-normal text-muted">({t('common.optional')})</span>
+          <input type="date" value={expectedCloseDate} onChange={(e) => setExpectedCloseDate(e.target.value)} className={inputClass} />
+        </label>
+        {error && (
+          <p role="alert" className="mb-4 text-sm text-risk">
+            {t(`leadDetail.convertErrors.${error}`)}
+          </p>
+        )}
+        <button type="submit" disabled={busy} className="min-h-11 w-full rounded-lg bg-healthy font-medium text-white disabled:opacity-60">
+          {busy ? t('common.saving') : t('leadDetail.convertDialog.confirm')}
         </button>
       </form>
     </Dialog>

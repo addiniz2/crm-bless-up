@@ -169,4 +169,24 @@ do $$ declare r public.lead%rowtype; v_id uuid; begin
 end $$;
 reset role;
 
+-- BU-11: quadro e indicadores por moeda
+set role authenticated; select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+do $$ declare v jsonb; v_opp uuid; begin
+  v := public.convert_lead('cccccccc-0000-0000-0000-000000000003', 'Caio Ltda', 'ORGANIZATION', 300, 'EUR');
+  v := public.convert_lead('cccccccc-0000-0000-0000-000000000002', null, 'PERSON', 1500, 'BRL');
+  v_opp := (v ->> 'opportunity_id')::uuid;
+  if (select contact_id from public.opportunity where id = v_opp) is not null then raise exception 'FALHA: pessoa física com contato'; end if;
+  if (select count(*) from public.opportunity_board) < 3 then raise exception 'FALHA: quadro'; end if;
+  v := public.opportunity_indicators();
+  if jsonb_array_length(v -> 'open') <> 2 then raise exception 'FALHA: moedas misturadas %', v; end if;
+  begin perform public.change_opportunity_stage(v_opp, 'LOST'); raise exception 'FALHA: perda sem motivo';
+  exception when others then if sqlerrm <> 'LOSS_REASON_REQUIRED' then raise; end if; end;
+  begin
+    update public.opportunity set monthly_value = -1 where id = v_opp;
+    raise exception 'FALHA: valor negativo';
+  exception when check_violation then null; end;
+end $$;
+select public.opportunity_indicators() as indicadores_oportunidade;
+reset role;
+
 select 'TODOS_OS_TESTES_OK' as resultado;

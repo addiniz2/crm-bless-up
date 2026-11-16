@@ -47,6 +47,7 @@ const lead = {
   created_at: '2026-11-15T10:00:00Z',
   created_by: 'u1',
   needs_completion: false,
+  converted_opportunity_id: null,
   form_answers: null,
   utm_source: null,
   utm_medium: null,

@@ -7,6 +7,7 @@ import { LeadDetailPage } from './pages/LeadDetailPage'
 import { LeadsPage } from './pages/LeadsPage'
 import { LoginPage } from './pages/LoginPage'
 import { NewLeadPage } from './pages/NewLeadPage'
+import { OpportunitiesPage } from './pages/OpportunitiesPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 import { QueuePage } from './pages/QueuePage'
@@ -25,7 +26,7 @@ export function AppRoutes() {
             <Route path="leads" element={<LeadsPage />} />
             <Route path="leads/novo" element={<NewLeadPage />} />
             <Route path="leads/:id" element={<LeadDetailPage />} />
-            <Route path="oportunidades" element={<PlaceholderPage page="opportunities" />} />
+            <Route path="oportunidades" element={<OpportunitiesPage />} />
             <Route path="clientes" element={<PlaceholderPage page="customers" />} />
             <Route path="configuracoes" element={<PlaceholderPage page="settings" />} />
             <Route path="*" element={<NotFoundPage />} />

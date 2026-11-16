@@ -94,7 +94,32 @@
     },
     "opportunities": {
       "title": "Oportunidades",
-      "empty": "Nenhuma oportunidade aberta."
+      "empty": "Nenhuma oportunidade aberta.",
+      "openPipeline": "Em aberto",
+      "wonThisMonth": "Ganhas no mês",
+      "noneYet": "nenhuma",
+      "countValue": "{{count}} · {{value}}/mês",
+      "late": "Fechamento atrasado",
+      "expected": "Previsão: {{date}}",
+      "owner": "Responsável",
+      "moveTo": "Etapa de {{name}}",
+      "closed": "Fechada",
+      "customer": "Cliente",
+      "lossReason": "Motivo: {{reason}}",
+      "fromLead": "Ver histórico do lead",
+      "lossDialog": {
+        "title": "Marcar como perdida",
+        "reason": "Motivo da perda",
+        "noReasons": "Nenhum motivo de perda cadastrado ainda.",
+        "confirm": "Marcar como perdida"
+      },
+      "wonConfirm": "Marcar {{name}} como ganha? A conta vira cliente e entra na carteira.",
+      "errors": {
+        "LOSS_REASON_REQUIRED": "Escolha o motivo da perda.",
+        "OPPORTUNITY_CLOSED": "Oportunidade fechada não muda de etapa.",
+        "OPPORTUNITY_NOT_FOUND": "Oportunidade não encontrada.",
+        "UNKNOWN": "Não foi possível mudar a etapa. Tente de novo."
+      }
     },
     "customers": {
       "title": "Clientes",
@@ -188,6 +213,20 @@
       "INVALID_NUMBER": "Número errado",
       "NO_WHATSAPP": "Número sem WhatsApp",
       "OTHER": "Outro motivo"
+    },
+    "opportunityStage": {
+      "PROPOSAL_SENT": "Proposta enviada",
+      "FOLLOW_UP": "Follow-up",
+      "WON": "Fechado (ganho)",
+      "LOST": "Perdido"
+    },
+    "accountKind": {
+      "ORGANIZATION": "Empresa",
+      "PERSON": "Pessoa física"
+    },
+    "currency": {
+      "EUR": "Euro (€)",
+      "BRL": "Real (R$)"
     }
   },
   "common": {
@@ -288,7 +327,6 @@
       "convert": "Converter",
       "editContact": "Corrigir contato"
     },
-    "convertSoon": "A conversão em conta e oportunidade chega no próximo item (BU-11).",
     "conversation": {
       "title": "Iniciar conversa no WhatsApp",
       "template": "Mensagem modelo",
@@ -349,6 +387,24 @@
     "editContact": {
       "title": "Corrigir contato",
       "save": "Salvar contato"
-    }
+    },
+    "convertDialog": {
+      "title": "Converter lead",
+      "hint": "Cria a conta e a oportunidade numa única operação. Depois disso, a ficha do lead fica somente leitura.",
+      "accountName": "Nome da conta",
+      "accountKind": "Tipo de conta",
+      "monthlyValue": "Valor mensal",
+      "currency": "Moeda",
+      "expectedCloseDate": "Previsão de fechamento",
+      "confirm": "Converter"
+    },
+    "convertErrors": {
+      "LEAD_NOT_CONVERTIBLE": "Este lead não pode ser convertido (já convertido ou desqualificado).",
+      "LEAD_INCOMPLETE": "Complete os dados do lead (país) antes de converter.",
+      "INVALID_CURRENCY": "Escolha a moeda.",
+      "LEAD_NOT_FOUND": "Lead não encontrado.",
+      "UNKNOWN": "Não foi possível converter. Tente de novo."
+    },
+    "convertedTo": "Ver oportunidade"
   }
 }

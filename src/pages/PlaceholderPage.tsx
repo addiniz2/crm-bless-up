@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 
 // Página provisória: cada tela do backlog substitui a sua ao longo dos Dias 1 a 7.
-export function PlaceholderPage({ page }: { page: 'opportunities' | 'customers' | 'settings' }) {
+export function PlaceholderPage({ page }: { page: 'customers' | 'settings' }) {
   const { t } = useTranslation()
   return (
     <section>
