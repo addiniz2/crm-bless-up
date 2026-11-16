@@ -176,7 +176,10 @@
   "codes": {
     "country": {
       "ES": "Espanha",
-      "BR": "Brasil"
+      "BR": "Brasil",
+      "PT": "Portugal",
+      "IE": "Irlanda",
+      "GB": "Reino Unido"
     },
     "channel": {
       "WEBSITE": "Site",
@@ -350,7 +353,9 @@
       "metaCampaign": "Campanha",
       "metaAd": "Anúncio",
       "metaPlatform": "Plataforma",
-      "metaOrganic": "Orgânico"
+      "metaOrganic": "Orgânico",
+      "instagram": "Instagram",
+      "mql": "Lead qualificado (MQL)"
     },
     "yes": "Sim",
     "no": "Não",
@@ -440,7 +445,11 @@
       "UNKNOWN": "Não foi possível converter. Tente de novo."
     },
     "convertedTo": "Ver oportunidade",
-    "backToQueue": "Voltar para Minha fila"
+    "backToQueue": "Voltar para Minha fila",
+    "mql": {
+      "yes": "Sim",
+      "no": "Não"
+    }
   },
   "search": {
     "title": "Buscar lead",

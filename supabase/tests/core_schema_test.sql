@@ -249,4 +249,21 @@ do $$ begin
 end $$;
 reset role;
 
+-- 20261116000010: qualquer país ISO, Instagram, MQL e motivos do histórico
+do $$ begin
+  insert into public.lead (full_name, country, instagram_handle, is_mql, needs_completion)
+  values ('Portugal OK', 'PT', 'clinica.exemplo', true, true);
+  begin
+    insert into public.lead (full_name, country, needs_completion) values ('País por extenso', 'Portugal', true);
+    raise exception 'FALHA: país fora do padrão ISO aceito';
+  exception when check_violation then null; end;
+  begin
+    insert into public.lead (full_name, instagram_handle, needs_completion) values ('Insta URL', 'https://instagram.com/x', true);
+    raise exception 'FALHA: Instagram com URL aceito';
+  exception when check_violation then null; end;
+  if (select count(*) from public.reason where kind = 'DISQUALIFICATION' and name in ('Rejeitou a proposta', 'Outro motivo')) <> 2 then
+    raise exception 'FALHA: motivos do histórico';
+  end if;
+end $$;
+
 select 'TODOS_OS_TESTES_OK' as resultado;

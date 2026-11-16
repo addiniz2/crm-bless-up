@@ -2,7 +2,8 @@ import { composeWhatsapp, type PhoneCountry } from './phone'
 import { supabase } from './supabase'
 
 // Códigos gravados no banco. Os rótulos ficam em src/locales/pt-BR.json.
-export const COUNTRIES = ['ES', 'BR'] as const
+// Países mais comuns no cadastro; o banco aceita qualquer código ISO de 2 letras (16/11/2026).
+export const COUNTRIES = ['ES', 'BR', 'PT', 'IE', 'GB'] as const
 export const MANUAL_CHANNELS = ['WHATSAPP', 'INSTAGRAM_DIRECT', 'MESSENGER', 'PHONE_CALL', 'MANUAL'] as const
 export const REVENUE_BANDS = ['UP_TO_5K', 'FROM_5K_TO_10K', 'FROM_10K_TO_20K', 'ABOVE_20K', 'NOT_INFORMED'] as const
 export const MAIN_GOALS = ['MORE_CUSTOMERS', 'BRAND', 'ORGANIZE_MARKETING', 'TRAIN_TEAM'] as const
@@ -10,9 +11,11 @@ export const MAIN_GOALS = ['MORE_CUSTOMERS', 'BRAND', 'ORGANIZE_MARKETING', 'TRA
 export type Country = (typeof COUNTRIES)[number]
 
 // A faixa de faturamento é mensal e a moeda segue o país do lead.
-export function currencyOf(country: Country | '' | null): 'BRL' | 'EUR' | null {
+// Decisão de 16/11/2026: Brasil em BRL; países europeus em EUR (Reino Unido incluído, a Bless cobra em euro).
+const EUR_COUNTRIES = new Set(['ES', 'PT', 'IE', 'GB', 'FR', 'IT', 'DE', 'NL', 'BE', 'LU', 'AT', 'CH'])
+export function currencyOf(country: string | null): 'BRL' | 'EUR' | null {
   if (country === 'BR') return 'BRL'
-  if (country === 'ES') return 'EUR'
+  if (country && EUR_COUNTRIES.has(country)) return 'EUR'
   return null
 }
 export type ListItem = { id: string; name: string }

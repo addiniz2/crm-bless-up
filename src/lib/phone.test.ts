@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { composeWhatsapp, formatNational, formatStoredWhatsapp } from './phone'
+import { composeWhatsapp, formatNational, formatStoredWhatsapp, phoneCountryOf } from './phone'
 
 describe('máscara de WhatsApp', () => {
   it('Espanha: 3-3-3', () => {
@@ -31,5 +31,18 @@ describe('máscara de WhatsApp', () => {
     expect(formatStoredWhatsapp('34600111222')).toBe('+34 600 111 222')
     expect(formatStoredWhatsapp('5511988887777')).toBe('+55 (11) 98888-7777')
     expect(formatStoredWhatsapp('351912345678')).toBe('+351912345678')
+  })
+})
+
+describe('países além de Brasil e Espanha', () => {
+  it('Portugal, Irlanda e Reino Unido usam o telefone sem máscara e a moeda euro', async () => {
+    const { currencyOf } = await import('./leads')
+    expect(phoneCountryOf('PT')).toBe('OTHER')
+    expect(phoneCountryOf('BR')).toBe('BR')
+    expect(formatStoredWhatsapp('351938759993')).toBe('+351938759993')
+    expect(currencyOf('PT')).toBe('EUR')
+    expect(currencyOf('GB')).toBe('EUR')
+    expect(currencyOf('BR')).toBe('BRL')
+    expect(currencyOf('US')).toBeNull()
   })
 })

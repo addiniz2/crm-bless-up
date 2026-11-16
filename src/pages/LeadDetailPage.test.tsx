@@ -33,6 +33,8 @@ const lead = {
   whatsapp_status: 'UNVERIFIED',
   email: null,
   country: 'ES',
+  instagram_handle: 'clinica.exemplo',
+  is_mql: true,
   capture_channel: 'WHATSAPP',
   revenue_band: 'FROM_5K_TO_10K',
   main_goal: null,
@@ -97,6 +99,8 @@ describe('ficha do lead', () => {
     expect(screen.getByText('+34 600 111 222')).toBeInTheDocument()
     expect(screen.getByText('De 5.000 € a 10.000 €')).toBeInTheDocument()
     expect(screen.getByText('Etapa: Novo → Abordado')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '@clinica.exemplo' })).toHaveAttribute('href', 'https://instagram.com/clinica.exemplo')
+    expect(screen.getByText('Lead qualificado (MQL)').nextSibling).toHaveTextContent('Sim')
   })
 
   it('registrar contato envia ao banco e mostra a regra que ele devolve', async () => {

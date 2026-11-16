@@ -18,6 +18,8 @@ export type LeadDetail = {
   whatsapp_status: WhatsappStatus
   email: string | null
   country: Country | null
+  instagram_handle: string | null
+  is_mql: boolean | null
   capture_channel: string
   revenue_band: string | null
   main_goal: string | null

@@ -30,6 +30,11 @@ export function formatNational(country: PhoneCountry, value: string): string {
   return digits
 }
 
+// País do lead -> máscara do telefone (países sem máscara própria usam "Outro": dígitos com código do país).
+export function phoneCountryOf(country: string): PhoneCountry {
+  return country === 'ES' || country === 'BR' ? country : 'OTHER'
+}
+
 // Junta código do país e número nacional no formato que o banco grava.
 export function composeWhatsapp(country: PhoneCountry, national: string): string {
   const digits = onlyDigits(national)

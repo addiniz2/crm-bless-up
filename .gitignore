@@ -29,3 +29,8 @@ dist-ssr
 !.env.example
 supabase/.temp
 supabase/.branches
+
+# Carga de dados reais (CSV/SQL gerados com dados pessoais) nunca vai para o repositório
+scripts/chronos_import/*.csv
+scripts/chronos_import/*.sql
+*.private.*

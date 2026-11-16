@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/context'
-import { PHONE_COUNTRIES, composeWhatsapp, formatNational, type PhoneCountry } from '../lib/phone'
+import { PHONE_COUNTRIES, composeWhatsapp, formatNational, phoneCountryOf, type PhoneCountry } from '../lib/phone'
 import {
   COUNTRIES,
   MAIN_GOALS,
@@ -90,8 +90,9 @@ export function NewLeadPage() {
     setDraft((current) => ({
       ...current,
       country,
-      phoneCountry: !phoneCountryTouched && country ? country : current.phoneCountry,
-      phoneNational: !phoneCountryTouched && country ? formatNational(country, current.phoneNational) : current.phoneNational,
+      phoneCountry: !phoneCountryTouched && country ? phoneCountryOf(country) : current.phoneCountry,
+      phoneNational:
+        !phoneCountryTouched && country ? formatNational(phoneCountryOf(country), current.phoneNational) : current.phoneNational,
     }))
     setDuplicates(null)
   }

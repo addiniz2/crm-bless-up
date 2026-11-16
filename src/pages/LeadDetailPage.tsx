@@ -208,6 +208,18 @@ export function LeadDetailPage() {
                 )}
               </Info>
               <Info label={t('leadDetail.fields.email')}>{lead.email}</Info>
+              <Info label={t('leadDetail.fields.instagram')}>
+                {lead.instagram_handle && (
+                  <a
+                    href={`https://instagram.com/${lead.instagram_handle}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-action underline"
+                  >
+                    @{lead.instagram_handle}
+                  </a>
+                )}
+              </Info>
               <Info label={t('leadDetail.fields.country')}>{lead.country && t(`codes.country.${lead.country}`)}</Info>
               <Info label={t('leadDetail.fields.nextStep')}>
                 {lead.next_step_at && `${formatDate(lead.next_step_at)}${lead.next_step ? ` · ${lead.next_step}` : ''}`}
@@ -221,6 +233,7 @@ export function LeadDetailPage() {
             <dl className="grid gap-3">
               <Info label={t('leadDetail.fields.company')}>{lead.company_name}</Info>
               <Info label={t('leadDetail.fields.leadType')}>{lead.lead_type?.name}</Info>
+              <Info label={t('leadDetail.fields.mql')}>{lead.is_mql == null ? null : t(`leadDetail.mql.${lead.is_mql ? 'yes' : 'no'}`)}</Info>
               <Info label={t('leadDetail.fields.revenueBand')}>
                 {lead.revenue_band && currency && t(`codes.revenueBand.${currency}.${lead.revenue_band}`)}
               </Info>

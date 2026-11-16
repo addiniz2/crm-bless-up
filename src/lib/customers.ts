@@ -8,7 +8,7 @@ export type CustomerRow = {
   account_id: string
   name: string
   kind: 'ORGANIZATION' | 'PERSON'
-  country: 'ES' | 'BR'
+  country: string
   customer_since: string | null
   source_lead_id: string | null
   profile_id: string

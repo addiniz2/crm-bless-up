@@ -19,7 +19,7 @@ export type OpportunityCard = {
   created_at: string
   account_id: string
   account_name: string
-  country: 'ES' | 'BR'
+  country: string
   is_customer: boolean
   contact_name: string | null
   source_lead_id: string | null
