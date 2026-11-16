@@ -166,12 +166,12 @@ export function LeadDetailPage() {
       )}
 
       {!closed && (
-        <div className="mb-6 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
+        <div className="mb-6 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
           <button
             type="button"
             onClick={() => setPanel('conversation')}
             disabled={!lead.whatsapp || lead.whatsapp_status === 'INVALID'}
-            className={`${actionClass} bg-action text-white`}
+            className={`${actionClass} col-span-2 bg-action text-white`}
           >
             {t('leadDetail.actions.startConversation')}
           </button>
@@ -269,7 +269,8 @@ export function LeadDetailPage() {
           )}
         </div>
 
-        <div className="rounded-card border border-line bg-card p-4">
+        {/* No celular a linha do tempo vem antes dos dados: acompanhar o histórico é o uso principal da ficha. */}
+        <div className="order-first rounded-card border border-line bg-card p-4 md:order-none">
           <h2 className="mb-3 font-semibold">{t('leadDetail.sections.timeline')}</h2>
           <ol className="space-y-4">
             {timeline.map((item) => (
