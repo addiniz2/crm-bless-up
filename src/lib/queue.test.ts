@@ -20,6 +20,8 @@ function row(partial: Partial<QueueRow>): QueueRow {
     created_at: '2026-11-15T10:00:00Z',
     is_overdue: false,
     missing_next_step: true,
+    whatsapp_status: 'UNVERIFIED',
+    pending_delivery_confirmation: false,
     ...partial,
   }
 }

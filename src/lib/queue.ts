@@ -24,6 +24,8 @@ export type QueueRow = {
   created_at: string
   is_overdue: boolean
   missing_next_step: boolean
+  whatsapp_status: 'UNVERIFIED' | 'VALID' | 'INVALID'
+  pending_delivery_confirmation: boolean
 }
 
 export type AppUser = { id: string; full_name: string }

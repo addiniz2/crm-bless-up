@@ -132,8 +132,6 @@ do $$ declare r public.lead%rowtype; begin
   if r.queue_status <> 'IN_PROGRESS' or r.last_contact_at is null or r.next_step <> 'Enviar proposta' then raise exception 'FALHA: contato'; end if;
 
   perform public.register_conversation_started('cccccccc-0000-0000-0000-000000000003','Olá Caio');
-  select * into r from public.lead where id='cccccccc-0000-0000-0000-000000000003';
-  if r.queue_status <> 'AWAITING_REPLY' or r.next_step <> 'Enviar proposta' then raise exception 'FALHA: Iniciar conversa'; end if;
   if (select count(*) from public.activity where lead_id='cccccccc-0000-0000-0000-000000000003') <> 3 then raise exception 'FALHA: atividades'; end if;
 
   begin perform public.register_activity('cccccccc-0000-0000-0000-000000000001','CALL','x'); raise exception 'FALHA: contato em lead convertido';
@@ -142,6 +140,33 @@ do $$ declare r public.lead%rowtype; begin
   if (public.lead_indicators() ->> 'converted_this_month')::int < 1 then raise exception 'FALHA: indicador convertidos'; end if;
 end $$;
 select public.lead_indicators() as indicadores;
+
+-- Confirmação de envio do Iniciar conversa
+do $$ declare r public.lead%rowtype; v_id uuid; begin
+  select id into v_id from public.activity where lead_id='cccccccc-0000-0000-0000-000000000003' and delivery_status='PENDING';
+  select * into r from public.lead where id='cccccccc-0000-0000-0000-000000000003';
+  if r.queue_status <> 'IN_PROGRESS' then raise exception 'FALHA: situação mudou antes da confirmação'; end if;
+  if not (select pending_delivery_confirmation from public.lead_queue where id='cccccccc-0000-0000-0000-000000000003') then raise exception 'FALHA: pendente na fila'; end if;
+
+  begin perform public.confirm_conversation(v_id, false); raise exception 'FALHA: não enviada sem motivo';
+  exception when others then if sqlerrm <> 'NOT_SENT_REASON_REQUIRED' then raise; end if; end;
+
+  perform public.confirm_conversation(v_id, true);
+  select * into r from public.lead where id='cccccccc-0000-0000-0000-000000000003';
+  if r.queue_status <> 'AWAITING_REPLY' or r.whatsapp_status <> 'VALID' or r.next_step <> 'Enviar proposta' then raise exception 'FALHA: confirmação enviada'; end if;
+  begin perform public.confirm_conversation(v_id, true); raise exception 'FALHA: confirmou duas vezes';
+  exception when others then if sqlerrm <> 'ALREADY_CONFIRMED' then raise; end if; end;
+
+  v_id := public.register_conversation_started('cccccccc-0000-0000-0000-000000000003', null);
+  perform public.confirm_conversation(v_id, false, 'INVALID_NUMBER');
+  if (select whatsapp_status from public.lead where id='cccccccc-0000-0000-0000-000000000003') <> 'INVALID' then raise exception 'FALHA: número inválido'; end if;
+  begin perform public.register_conversation_started('cccccccc-0000-0000-0000-000000000003', null); raise exception 'FALHA: conversa com número inválido';
+  exception when others then if sqlerrm <> 'WHATSAPP_MARKED_INVALID' then raise; end if; end;
+
+  update public.lead set whatsapp = '34611222444' where id='cccccccc-0000-0000-0000-000000000003';
+  if (select whatsapp_status from public.lead where id='cccccccc-0000-0000-0000-000000000003') <> 'UNVERIFIED' then raise exception 'FALHA: número corrigido'; end if;
+  if (select count(*) from public.reason where kind='DISQUALIFICATION') < 10 then raise exception 'FALHA: motivos'; end if;
+end $$;
 reset role;
 
 select 'TODOS_OS_TESTES_OK' as resultado;

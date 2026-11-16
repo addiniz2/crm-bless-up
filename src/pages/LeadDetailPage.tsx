@@ -5,6 +5,9 @@ import { Dialog } from '../components/Dialog'
 import { currencyOf } from '../lib/leads'
 import {
   ACTIVITY_KINDS,
+  NOT_SENT_REASONS,
+  confirmConversation,
+  updateContact,
   getLead,
   getTimeline,
   listTemplates,
@@ -15,15 +18,16 @@ import {
   type ActivityError,
   type ActivityKind,
   type LeadDetail,
+  type NotSentReason,
   type Template,
   type TimelineItem,
 } from '../lib/leadDetail'
-import { formatStoredWhatsapp } from '../lib/phone'
+import { DIAL_CODE, PHONE_COUNTRIES, composeWhatsapp, formatNational, formatStoredWhatsapp, type PhoneCountry } from '../lib/phone'
 import { changeLeadStage, listReasons, type StageError } from '../lib/pipeline'
 import { listUsers, type AppUser } from '../lib/queue'
-import type { ListItem } from '../lib/leads'
+import type { ListItem, SaveError } from '../lib/leads'
 
-type Panel = 'conversation' | 'contact' | 'disqualify' | null
+type Panel = 'conversation' | 'contact' | 'disqualify' | 'editContact' | null
 
 const inputClass =
   'mt-1 block min-h-11 w-full rounded-lg border border-line bg-card px-3 text-base text-ink focus:border-action focus:outline-none'
@@ -121,6 +125,11 @@ export function LeadDetailPage() {
           </span>
         </p>
         {readOnly && <p className="mt-3 rounded-lg bg-page p-3 text-sm text-muted">{t('leadDetail.readOnly')}</p>}
+        {!closed && lead.whatsapp_status === 'INVALID' && (
+          <p role="alert" className="mt-3 rounded-lg bg-risk-bg p-3 text-sm text-risk">
+            {t('leadDetail.whatsappInvalid')}
+          </p>
+        )}
         {lead.stage === 'DISQUALIFIED' && (
           <p className="mt-3 rounded-lg bg-page p-3 text-sm text-muted">
             {t('leadDetail.disqualified', { reason: lead.disqualification_reason?.name ?? '' })}
@@ -130,11 +139,19 @@ export function LeadDetailPage() {
 
       {!closed && (
         <div className="mb-6 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
-          <button type="button" onClick={() => setPanel('conversation')} disabled={!lead.whatsapp} className={`${actionClass} bg-action text-white`}>
+          <button
+            type="button"
+            onClick={() => setPanel('conversation')}
+            disabled={!lead.whatsapp || lead.whatsapp_status === 'INVALID'}
+            className={`${actionClass} bg-action text-white`}
+          >
             {t('leadDetail.actions.startConversation')}
           </button>
           <button type="button" onClick={() => setPanel('contact')} className={`${actionClass} border border-action text-action`}>
             {t('leadDetail.actions.registerContact')}
+          </button>
+          <button type="button" onClick={() => setPanel('editContact')} className={`${actionClass} border border-line text-ink-soft`}>
+            {t('leadDetail.actions.editContact')}
           </button>
           <button type="button" onClick={() => setPanel('disqualify')} className={`${actionClass} border border-line text-ink-soft`}>
             {t('leadDetail.actions.disqualify')}
@@ -150,7 +167,15 @@ export function LeadDetailPage() {
           <div className="rounded-card border border-line bg-card p-4">
             <h2 className="mb-3 font-semibold">{t('leadDetail.sections.contact')}</h2>
             <dl className="grid gap-3">
-              <Info label={t('leadDetail.fields.whatsapp')}>{formatStoredWhatsapp(lead.whatsapp)}</Info>
+              <Info label={t('leadDetail.fields.whatsapp')}>
+                {lead.whatsapp && (
+                  <>
+                    {formatStoredWhatsapp(lead.whatsapp)}
+                    {lead.whatsapp_status === 'VALID' && <span className="ml-2 text-xs text-healthy">✓ {t('leadDetail.whatsappValid')}</span>}
+                    {lead.whatsapp_status === 'INVALID' && <span className="ml-2 text-xs text-risk">{t('pages.queue.whatsappInvalid')}</span>}
+                  </>
+                )}
+              </Info>
               <Info label={t('leadDetail.fields.email')}>{lead.email}</Info>
               <Info label={t('leadDetail.fields.country')}>{lead.country && t(`codes.country.${lead.country}`)}</Info>
               <Info label={t('leadDetail.fields.nextStep')}>
@@ -228,6 +253,18 @@ export function LeadDetailPage() {
                   <>
                     <p className="text-sm font-medium">{t(`codes.activityKind.${item.kind}`)}</p>
                     {item.body && <p className="text-sm whitespace-pre-line break-words">{item.body}</p>}
+                    {item.deliveryStatus === 'SENT' && <p className="text-xs text-healthy">{t('leadDetail.timeline.sent')}</p>}
+                    {item.deliveryStatus === 'NOT_SENT' && (
+                      <p className="text-xs text-risk">
+                        {t('leadDetail.timeline.notSent', { reason: t(`codes.notSentReason.${item.notSentReason ?? 'OTHER'}`) })}
+                      </p>
+                    )}
+                    {item.deliveryStatus === 'PENDING' && (
+                      <div className="mt-1 rounded-lg bg-warning-bg p-2">
+                        <p className="mb-1 text-xs font-medium text-warning">{t('leadDetail.timeline.pending')}</p>
+                        <DeliveryConfirmation activityId={item.id} onDone={fetchAll} />
+                      </div>
+                    )}
                     {item.nextStepAt && (
                       <p className="text-xs text-muted">
                         {t('leadDetail.timeline.nextStep', {
@@ -261,6 +298,7 @@ export function LeadDetailPage() {
         <ConversationDialog lead={lead} ownerName={userName(lead.owner_id) ?? ''} onClose={() => setPanel(null)} onDone={fetchAll} />
       )}
       {panel === 'contact' && <ContactDialog leadId={lead.id} onClose={() => setPanel(null)} onDone={fetchAll} />}
+      {panel === 'editContact' && <EditContactDialog lead={lead} onClose={() => setPanel(null)} onDone={fetchAll} />}
       {panel === 'disqualify' && <DisqualifyDialog leadId={lead.id} onClose={() => setPanel(null)} onDone={fetchAll} />}
     </section>
   )
@@ -306,15 +344,33 @@ function ConversationDialog({
     )
   }
 
-  // O link abre o WhatsApp direto do clique (sem bloqueio de janela); o registro acontece em seguida.
+  const [activityId, setActivityId] = useState<string | null>(null)
+
+  // O link abre o WhatsApp direto do clique (sem bloqueio de janela); a tentativa é registrada como pendente.
   async function onOpen() {
     const result = await registerConversationStarted(lead.id, message)
-    if (result) {
-      setError(result)
+    if (result.error) {
+      setError(result.error)
       return
     }
+    setActivityId(result.id ?? null)
+  }
+
+  async function finish() {
     onClose()
     await onDone()
+  }
+
+  if (activityId) {
+    return (
+      <Dialog title={t('leadDetail.conversation.confirmTitle')} onClose={() => void finish()}>
+        <p className="mb-4 text-sm text-muted">{t('leadDetail.conversation.confirmHint')}</p>
+        <DeliveryConfirmation activityId={activityId} onDone={finish} />
+        <button type="button" onClick={() => void finish()} className="mt-3 min-h-11 w-full rounded-lg text-sm text-muted">
+          {t('leadDetail.conversation.later')}
+        </button>
+      </Dialog>
+    )
   }
 
   return (
@@ -467,6 +523,138 @@ function DisqualifyDialog({ leadId, onClose, onDone }: { leadId: string; onClose
         )}
         <button type="submit" className="min-h-11 w-full rounded-lg bg-risk font-medium text-white">
           {t('leadDetail.disqualifyDialog.confirm')}
+        </button>
+      </form>
+    </Dialog>
+  )
+}
+
+function DeliveryConfirmation({ activityId, onDone }: { activityId: string; onDone: () => Promise<void> }) {
+  const { t } = useTranslation()
+  const [askReason, setAskReason] = useState(false)
+  const [reason, setReason] = useState<NotSentReason>('INVALID_NUMBER')
+  const [error, setError] = useState<ActivityError | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  async function confirm(sent: boolean) {
+    setBusy(true)
+    const result = await confirmConversation(activityId, sent, reason)
+    setBusy(false)
+    if (result) {
+      setError(result)
+      return
+    }
+    await onDone()
+  }
+
+  return (
+    <div>
+      {!askReason ? (
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <button type="button" disabled={busy} onClick={() => void confirm(true)} className="min-h-11 rounded-lg bg-healthy px-3 text-sm font-medium text-white">
+            {t('leadDetail.conversation.sent')}
+          </button>
+          <button type="button" disabled={busy} onClick={() => setAskReason(true)} className="min-h-11 rounded-lg border border-risk px-3 text-sm font-medium text-risk">
+            {t('leadDetail.conversation.notSent')}
+          </button>
+        </div>
+      ) : (
+        <div className="grid gap-2">
+          <label className="text-sm font-medium text-ink-soft">
+            {t('leadDetail.conversation.notSentReason')}
+            <select value={reason} onChange={(e) => setReason(e.target.value as NotSentReason)} className={inputClass}>
+              {NOT_SENT_REASONS.map((code) => (
+                <option key={code} value={code}>
+                  {t(`codes.notSentReason.${code}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="button" disabled={busy} onClick={() => void confirm(false)} className="min-h-11 rounded-lg bg-risk px-3 text-sm font-medium text-white">
+            {t('leadDetail.timeline.confirmNotSent')}
+          </button>
+        </div>
+      )}
+      {error && (
+        <p role="alert" className="mt-2 text-sm text-risk">
+          {t(`leadDetail.activityError.${error}`)}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function splitStored(whatsapp: string | null): { country: PhoneCountry; national: string } {
+  if (whatsapp?.startsWith(DIAL_CODE.ES)) return { country: 'ES', national: formatNational('ES', whatsapp.slice(2)) }
+  if (whatsapp?.startsWith(DIAL_CODE.BR)) return { country: 'BR', national: formatNational('BR', whatsapp.slice(2)) }
+  return { country: 'OTHER', national: whatsapp ?? '' }
+}
+
+function EditContactDialog({ lead, onClose, onDone }: { lead: LeadDetail; onClose: () => void; onDone: () => Promise<void> }) {
+  const { t } = useTranslation()
+  const initial = splitStored(lead.whatsapp)
+  const [phoneCountry, setPhoneCountry] = useState<PhoneCountry>(initial.country)
+  const [national, setNational] = useState(initial.national)
+  const [email, setEmail] = useState(lead.email ?? '')
+  const [error, setError] = useState<SaveError | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault()
+    setBusy(true)
+    const result = await updateContact(lead.id, composeWhatsapp(phoneCountry, national), email.trim())
+    setBusy(false)
+    if (result) {
+      setError(result)
+      return
+    }
+    onClose()
+    await onDone()
+  }
+
+  return (
+    <Dialog title={t('leadDetail.editContact.title')} onClose={onClose}>
+      <form onSubmit={onSubmit}>
+        <label className="mb-4 block text-sm font-medium text-ink-soft">
+          {t('newLead.phoneCountry')}
+          <select
+            value={phoneCountry}
+            onChange={(e) => {
+              const next = e.target.value as PhoneCountry
+              setPhoneCountry(next)
+              setNational(formatNational(next, national))
+            }}
+            className={inputClass}
+          >
+            {PHONE_COUNTRIES.map((code) => (
+              <option key={code} value={code}>
+                {t(`codes.phoneCountry.${code}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="mb-1 block text-sm font-medium text-ink-soft">
+          {t('newLead.whatsapp')}
+          <input
+            required
+            inputMode="tel"
+            value={national}
+            onChange={(e) => setNational(formatNational(phoneCountry, e.target.value))}
+            className={inputClass}
+          />
+        </label>
+        <p className="mb-4 text-xs text-muted">{t(`newLead.whatsappHint.${phoneCountry}`)}</p>
+        <label className="mb-4 block text-sm font-medium text-ink-soft">
+          {t('newLead.email')} <span className="font-normal text-muted">({t('common.optional')})</span>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
+        </label>
+        {error && (
+          <p role="alert" className="mb-4 text-sm text-risk">
+            {t(`newLead.errors.${error}`)}
+          </p>
+        )}
+        <button type="submit" disabled={busy} className="min-h-11 w-full rounded-lg bg-action font-medium text-white disabled:opacity-60">
+          {busy ? t('common.saving') : t('leadDetail.editContact.save')}
         </button>
       </form>
     </Dialog>

@@ -11,6 +11,7 @@ const api = vi.hoisted(() => ({
   listTemplates: vi.fn(),
   registerActivity: vi.fn(),
   registerConversationStarted: vi.fn(),
+  confirmConversation: vi.fn(),
   listUsers: vi.fn(),
   listReasons: vi.fn(),
   changeLeadStage: vi.fn(),
@@ -29,6 +30,7 @@ const lead = {
   full_name: 'Ana Martínez',
   company_name: 'Café Ana',
   whatsapp: '34600111222',
+  whatsapp_status: 'UNVERIFIED',
   email: null,
   country: 'ES',
   capture_channel: 'WHATSAPP',
@@ -111,8 +113,9 @@ describe('ficha do lead', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Informe a data e a hora do próximo passo.')
   })
 
-  it('Iniciar conversa abre o link oficial do WhatsApp e registra o contato', async () => {
-    api.registerConversationStarted.mockResolvedValue(null)
+  it('Iniciar conversa abre o link oficial, registra a tentativa e pede a confirmação do envio', async () => {
+    api.registerConversationStarted.mockResolvedValue({ id: 'a9' })
+    api.confirmConversation.mockResolvedValue(null)
     const user = userEvent.setup()
     renderPage()
     await user.click(await screen.findByRole('button', { name: 'Iniciar conversa' }))
@@ -120,6 +123,18 @@ describe('ficha do lead', () => {
     expect(link).toHaveAttribute('href', 'https://wa.me/34600111222')
     await user.click(link)
     expect(api.registerConversationStarted).toHaveBeenCalledWith('l1', '')
+
+    await user.click(await screen.findByRole('button', { name: 'Não foi enviada' }))
+    await user.selectOptions(screen.getByLabelText('Por quê?'), 'NO_WHATSAPP')
+    await user.click(screen.getByRole('button', { name: 'Não foi enviada' }))
+    expect(api.confirmConversation).toHaveBeenCalledWith('a9', false, 'NO_WHATSAPP')
+  })
+
+  it('WhatsApp marcado como inválido bloqueia o Iniciar conversa e avisa', async () => {
+    api.getLead.mockResolvedValue({ ...lead, whatsapp_status: 'INVALID' })
+    renderPage()
+    expect(await screen.findByRole('button', { name: 'Iniciar conversa' })).toBeDisabled()
+    expect(screen.getByText(/Corrija o número para iniciar conversa/)).toBeInTheDocument()
   })
 
   it('desqualificar sem motivos cadastrados avisa', async () => {

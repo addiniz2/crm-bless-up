@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/context'
 import { COUNTRIES, listLeadTypes, type ListItem } from '../lib/leads'
@@ -183,7 +184,9 @@ export function QueuePage() {
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="truncate font-medium">{row.full_name}</p>
+                  <Link to={`/leads/${row.id}`} className="block truncate font-medium text-ink hover:text-action">
+                    {row.full_name}
+                  </Link>
                   <p className="truncate text-sm text-muted">
                     {[row.company_name, row.lead_type_name, row.country && t(`codes.country.${row.country}`), t(`codes.leadStage.${row.stage}`)]
                       .filter(Boolean)
@@ -197,6 +200,12 @@ export function QueuePage() {
                   {row.is_overdue && <span className="rounded-full bg-risk-bg px-2 py-1 text-risk">{t('pages.queue.overdue')}</span>}
                   {row.queue_status === 'IN_PROGRESS' && row.missing_next_step && (
                     <span className="rounded-full bg-warning-bg px-2 py-1 text-warning">{t('pages.queue.missingNextStep')}</span>
+                  )}
+                  {row.pending_delivery_confirmation && (
+                    <span className="rounded-full bg-warning-bg px-2 py-1 text-warning">{t('pages.queue.pendingDelivery')}</span>
+                  )}
+                  {row.whatsapp_status === 'INVALID' && (
+                    <span className="rounded-full bg-risk-bg px-2 py-1 text-risk">{t('pages.queue.whatsappInvalid')}</span>
                   )}
                   {row.needs_completion && (
                     <span className="rounded-full bg-warning-bg px-2 py-1 text-warning">{t('pages.queue.needsCompletion')}</span>

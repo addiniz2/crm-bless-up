@@ -1,15 +1,21 @@
 import { supabase } from './supabase'
 import { ruleErrorFrom } from './pipeline'
-import type { Country } from './leads'
+import { saveErrorFrom, type Country, type SaveError } from './leads'
 
 export const ACTIVITY_KINDS = ['CALL', 'WHATSAPP', 'EMAIL', 'MEETING', 'NOTE'] as const
 export type ActivityKind = (typeof ACTIVITY_KINDS)[number]
+
+export type WhatsappStatus = 'UNVERIFIED' | 'VALID' | 'INVALID'
+export const NOT_SENT_REASONS = ['INVALID_NUMBER', 'NO_WHATSAPP', 'OTHER'] as const
+export type NotSentReason = (typeof NOT_SENT_REASONS)[number]
+export type DeliveryStatus = 'PENDING' | 'SENT' | 'NOT_SENT'
 
 export type LeadDetail = {
   id: string
   full_name: string
   company_name: string | null
   whatsapp: string | null
+  whatsapp_status: WhatsappStatus
   email: string | null
   country: Country | null
   capture_channel: string
@@ -48,7 +54,18 @@ export type LeadDetail = {
 }
 
 export type TimelineItem =
-  | { type: 'activity'; id: string; at: string; by: string | null; kind: ActivityKind; body: string | null; nextStep: string | null; nextStepAt: string | null }
+  | {
+      type: 'activity'
+      id: string
+      at: string
+      by: string | null
+      kind: ActivityKind
+      body: string | null
+      nextStep: string | null
+      nextStepAt: string | null
+      deliveryStatus: DeliveryStatus | null
+      notSentReason: NotSentReason | null
+    }
   | { type: 'change'; id: string; at: string; by: string | null; field: 'stage' | 'queue_status' | 'owner_id'; from: string | null; to: string | null }
 
 export type Template = { id: string; name: string; language: string; body: string }
@@ -57,10 +74,19 @@ export type ActivityError =
   | 'ACTIVITY_BODY_REQUIRED'
   | 'NEXT_STEP_DATE_REQUIRED'
   | 'WHATSAPP_REQUIRED'
+  | 'WHATSAPP_MARKED_INVALID'
   | 'LEAD_READ_ONLY'
+  | 'ALREADY_CONFIRMED'
   | 'UNKNOWN'
 
-const ACTIVITY_ERRORS: ActivityError[] = ['ACTIVITY_BODY_REQUIRED', 'NEXT_STEP_DATE_REQUIRED', 'WHATSAPP_REQUIRED', 'LEAD_READ_ONLY']
+const ACTIVITY_ERRORS: ActivityError[] = [
+  'ACTIVITY_BODY_REQUIRED',
+  'NEXT_STEP_DATE_REQUIRED',
+  'WHATSAPP_REQUIRED',
+  'WHATSAPP_MARKED_INVALID',
+  'LEAD_READ_ONLY',
+  'ALREADY_CONFIRMED',
+]
 
 function client() {
   if (!supabase) throw new Error('SUPABASE_NOT_CONFIGURED')
@@ -84,7 +110,7 @@ export async function getTimeline(leadId: string): Promise<TimelineItem[]> {
   const [activities, changes] = await Promise.all([
     client()
       .from('activity')
-      .select('id, kind, body, occurred_at, created_by, next_step, next_step_at')
+      .select('id, kind, body, occurred_at, created_by, next_step, next_step_at, delivery_status, not_sent_reason')
       .eq('lead_id', leadId)
       .is('deleted_at', null),
     client().from('stage_history').select('id, field, from_value, to_value, changed_at, changed_by').eq('entity', 'LEAD').eq('entity_id', leadId),
@@ -101,6 +127,8 @@ export async function getTimeline(leadId: string): Promise<TimelineItem[]> {
       body: a.body,
       nextStep: a.next_step,
       nextStepAt: a.next_step_at,
+      deliveryStatus: a.delivery_status as DeliveryStatus | null,
+      notSentReason: a.not_sent_reason as NotSentReason | null,
     })),
     ...changes.data.map((c) => ({
       type: 'change' as const,
@@ -133,9 +161,28 @@ export async function registerActivity(input: {
   return error ? ruleErrorFrom(error, ACTIVITY_ERRORS, 'UNKNOWN') : null
 }
 
-export async function registerConversationStarted(leadId: string, message: string): Promise<ActivityError | null> {
-  const { error } = await client().rpc('register_conversation_started', { p_lead_id: leadId, p_message: message || null })
+// Registra a tentativa como pendente; a usuária confirma depois se a mensagem foi enviada.
+export async function registerConversationStarted(leadId: string, message: string): Promise<{ id?: string; error?: ActivityError }> {
+  const { data, error } = await client().rpc('register_conversation_started', { p_lead_id: leadId, p_message: message || null })
+  return error ? { error: ruleErrorFrom(error, ACTIVITY_ERRORS, 'UNKNOWN') } : { id: data as string }
+}
+
+export async function confirmConversation(activityId: string, sent: boolean, reason?: NotSentReason): Promise<ActivityError | null> {
+  const { error } = await client().rpc('confirm_conversation', {
+    p_activity_id: activityId,
+    p_sent: sent,
+    p_not_sent_reason: sent ? null : (reason ?? null),
+  })
   return error ? ruleErrorFrom(error, ACTIVITY_ERRORS, 'UNKNOWN') : null
+}
+
+// Corrige WhatsApp e e-mail. O banco normaliza, valida e volta o WhatsApp para "não verificado".
+export async function updateContact(leadId: string, whatsapp: string, email: string): Promise<SaveError | null> {
+  const { error } = await client()
+    .from('lead')
+    .update({ whatsapp: whatsapp || null, email: email || null })
+    .eq('id', leadId)
+  return error ? saveErrorFrom(error) : null
 }
 
 export async function listTemplates(): Promise<Template[]> {

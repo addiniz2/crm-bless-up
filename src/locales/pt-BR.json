@@ -59,7 +59,9 @@
       "none": "não definido",
       "changeStatus": "Mudar situação de {{name}}",
       "assign": "Responsável por {{name}}",
-      "saveError": "Não foi possível salvar a mudança. Tente de novo."
+      "saveError": "Não foi possível salvar a mudança. Tente de novo.",
+      "pendingDelivery": "Envio não confirmado",
+      "whatsappInvalid": "WhatsApp inválido"
     },
     "leads": {
       "title": "Leads",
@@ -181,6 +183,11 @@
       "EMAIL": "E-mail",
       "MEETING": "Reunião",
       "NOTE": "Nota"
+    },
+    "notSentReason": {
+      "INVALID_NUMBER": "Número errado",
+      "NO_WHATSAPP": "Número sem WhatsApp",
+      "OTHER": "Outro motivo"
     }
   },
   "common": {
@@ -278,7 +285,8 @@
       "startConversation": "Iniciar conversa",
       "registerContact": "Registrar contato",
       "disqualify": "Desqualificar",
-      "convert": "Converter"
+      "convert": "Converter",
+      "editContact": "Corrigir contato"
     },
     "convertSoon": "A conversão em conta e oportunidade chega no próximo item (BU-11).",
     "conversation": {
@@ -288,7 +296,13 @@
       "noTemplates": "Nenhuma mensagem modelo cadastrada ainda. A conversa abre sem texto.",
       "message": "Mensagem",
       "open": "Abrir WhatsApp",
-      "noWhatsapp": "Este lead não tem WhatsApp válido."
+      "noWhatsapp": "Este lead não tem WhatsApp válido.",
+      "confirmTitle": "A mensagem foi enviada?",
+      "confirmHint": "O CRM não vê o WhatsApp. Confirme para a fila ficar certa; se preferir, responda depois pela ficha.",
+      "sent": "Sim, enviei",
+      "notSent": "Não foi enviada",
+      "notSentReason": "Por quê?",
+      "later": "Responder depois"
     },
     "contact": {
       "title": "Registrar contato",
@@ -310,7 +324,9 @@
       "NEXT_STEP_DATE_REQUIRED": "Informe a data e a hora do próximo passo.",
       "WHATSAPP_REQUIRED": "Este lead não tem WhatsApp válido.",
       "LEAD_READ_ONLY": "Lead convertido: a ficha fica somente leitura.",
-      "UNKNOWN": "Não foi possível salvar. Tente de novo."
+      "UNKNOWN": "Não foi possível salvar. Tente de novo.",
+      "WHATSAPP_MARKED_INVALID": "WhatsApp marcado como inválido. Corrija o número antes de iniciar conversa.",
+      "ALREADY_CONFIRMED": "Este envio já foi confirmado."
     },
     "timeline": {
       "empty": "Nenhum registro ainda.",
@@ -321,7 +337,18 @@
       "owner_id": "Responsável: {{from}} → {{to}}",
       "nobody": "ninguém",
       "created": "Lead cadastrado",
-      "nextStep": "Próximo passo: {{when}}{{what}}"
+      "nextStep": "Próximo passo: {{when}}{{what}}",
+      "pending": "Envio não confirmado",
+      "sent": "Enviada",
+      "notSent": "Não enviada: {{reason}}",
+      "confirmSent": "Foi enviada",
+      "confirmNotSent": "Não foi enviada"
+    },
+    "whatsappInvalid": "WhatsApp marcado como inválido. Corrija o número para iniciar conversa.",
+    "whatsappValid": "confirmado",
+    "editContact": {
+      "title": "Corrigir contato",
+      "save": "Salvar contato"
     }
   }
 }
