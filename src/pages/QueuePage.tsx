@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/context'
+import { ContactDialog, ConversationDialog } from '../components/LeadActionDialogs'
 import { LeadFilters } from '../components/LeadFilters'
 import { listLeadTypes, type ListItem } from '../lib/leads'
 import {
@@ -22,6 +23,9 @@ import {
   type QueueTab,
 } from '../lib/queue'
 
+const quickAction =
+  'inline-flex min-h-11 items-center justify-center rounded-lg border px-3 text-center text-xs font-medium leading-tight disabled:opacity-50 sm:text-sm sm:whitespace-nowrap'
+
 const selectClass =
   'min-h-11 w-full rounded-lg border border-line bg-card px-3 text-sm text-ink focus:border-action focus:outline-none'
 
@@ -38,6 +42,7 @@ export function QueuePage() {
   const [saveFailed, setSaveFailed] = useState(false)
   const [tab, setTab] = useState<QueueTab>('NEW')
   const [filters, setFilters] = useState<QueueFilters>(NO_FILTERS)
+  const [action, setAction] = useState<{ kind: 'conversation' | 'contact'; row: QueueRow } | null>(null)
 
   const fetchAll = useCallback(
     () =>
@@ -174,6 +179,7 @@ export function QueuePage() {
               </dl>
 
               <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-1">
                 <select
                   aria-label={t('pages.queue.changeStatus', { name: row.full_name })}
                   value={row.queue_status}
@@ -199,18 +205,58 @@ export function QueuePage() {
                     </option>
                   ))}
                 </select>
-                <Link
-                  to={`/leads/${row.id}`}
-                  state={{ from: '/' }}
-                  aria-label={t('pages.queue.openLeadOf', { name: row.full_name })}
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-action px-4 text-sm font-medium whitespace-nowrap text-action hover:bg-selected sm:ml-auto"
-                >
-                  {t('pages.queue.openLead')}
-                </Link>
+                </div>
+                <div className="grid grid-cols-3 gap-2 sm:ml-auto sm:flex">
+                  <button
+                    type="button"
+                    onClick={() => setAction({ kind: 'conversation', row })}
+                    disabled={!row.whatsapp || row.whatsapp_status === 'INVALID'}
+                    aria-label={t('pages.queue.startConversationOf', { name: row.full_name })}
+                    className={`${quickAction} border-action bg-action text-white`}
+                  >
+                    {t('leadDetail.actions.startConversation')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAction({ kind: 'contact', row })}
+                    aria-label={t('pages.queue.registerContactOf', { name: row.full_name })}
+                    className={`${quickAction} border-action text-action hover:bg-selected`}
+                  >
+                    {t('leadDetail.actions.registerContact')}
+                  </button>
+                  <Link
+                    to={`/leads/${row.id}`}
+                    state={{ from: '/' }}
+                    aria-label={t('pages.queue.openLeadOf', { name: row.full_name })}
+                    className={`${quickAction} border-line text-ink-soft hover:bg-page`}
+                  >
+                    {t('pages.queue.openLead')}
+                  </Link>
+                </div>
               </div>
             </li>
           ))}
         </ul>
+      )}
+
+      {action?.kind === 'conversation' && (
+        <ConversationDialog
+          lead={action.row}
+          ownerName={users.find((user) => user.id === action.row.owner_id)?.full_name ?? ''}
+          onClose={() => setAction(null)}
+          onDone={async () => {
+            await fetchAll()
+          }}
+        />
+      )}
+      {action?.kind === 'contact' && (
+        <ContactDialog
+          leadId={action.row.id}
+          onClose={() => setAction(null)}
+          onDone={async () => {
+            await fetchAll()
+          }}
+        />
       )}
     </section>
   )
