@@ -46,12 +46,13 @@ describe('Minha fila', () => {
     expect(rowsForTab(rows, 'NEW').map((r) => r.full_name)).toEqual(['Bia', 'Ana'])
   })
 
-  it('filtra por responsável, país e tipo', () => {
+  it('filtra por responsável (todos, sem responsável ou a usuária), país e tipo', () => {
     const names = (filtered: QueueRow[]) => filtered.map((r) => r.full_name)
-    expect(names(applyFilters(rows, { owner: 'ME', country: '', leadTypeId: '' }, 'me'))).toEqual(['Ana', 'Duda'])
-    expect(names(applyFilters(rows, { owner: 'OTHERS', country: '', leadTypeId: '' }, 'me'))).toEqual(['Caio'])
-    expect(names(applyFilters(rows, { owner: 'NONE', country: '', leadTypeId: '' }, 'me'))).toEqual(['Bia'])
-    expect(names(applyFilters(rows, { owner: 'ALL', country: 'BR', leadTypeId: '' }, 'me'))).toEqual(['Caio'])
-    expect(names(applyFilters(rows, { owner: 'ALL', country: '', leadTypeId: 't2' }, 'me'))).toEqual(['Duda'])
+    expect(names(applyFilters(rows, { owner: 'ALL', country: '', leadTypeId: '' }))).toEqual(['Ana', 'Bia', 'Caio', 'Duda'])
+    expect(names(applyFilters(rows, { owner: 'me', country: '', leadTypeId: '' }))).toEqual(['Ana', 'Duda'])
+    expect(names(applyFilters(rows, { owner: 'other', country: '', leadTypeId: '' }))).toEqual(['Caio'])
+    expect(names(applyFilters(rows, { owner: 'NONE', country: '', leadTypeId: '' }))).toEqual(['Bia'])
+    expect(names(applyFilters(rows, { owner: 'ALL', country: 'BR', leadTypeId: '' }))).toEqual(['Caio'])
+    expect(names(applyFilters(rows, { owner: 'ALL', country: '', leadTypeId: 't2' }))).toEqual(['Duda'])
   })
 })

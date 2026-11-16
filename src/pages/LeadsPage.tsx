@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useState, type DragEvent } from 'react'
+import { useCallback, useEffect, useMemo, useState, type DragEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { BOARD_STAGES, changeLeadStage, getIndicators, type BoardStage, type Indicators, type StageError } from '../lib/pipeline'
-import { listQueue, listUsers, type AppUser, type QueueRow } from '../lib/queue'
+import { LeadFilters } from '../components/LeadFilters'
+import { listLeadTypes, type ListItem } from '../lib/leads'
+import { NO_FILTERS, applyFilters, listQueue, listUsers, type AppUser, type QueueFilters, type QueueRow } from '../lib/queue'
 
 type View = 'board' | 'list'
 
@@ -19,12 +21,15 @@ export function LeadsPage() {
   const [stageError, setStageError] = useState<StageError | null>(null)
   const [view, setView] = useState<View>('board')
   const [dragOver, setDragOver] = useState<BoardStage | null>(null)
+  const [types, setTypes] = useState<ListItem[]>([])
+  const [filters, setFilters] = useState<QueueFilters>(NO_FILTERS)
 
   const fetchAll = useCallback(
     () =>
-      Promise.all([listQueue(), getIndicators(), listUsers()])
-        .then(([leads, numbers, appUsers]) => {
+      Promise.all([listQueue(), getIndicators(), listUsers(), listLeadTypes()])
+        .then(([leads, numbers, appUsers, leadTypes]) => {
           setRows(leads)
+          setTypes(leadTypes)
           setIndicators(numbers)
           setUsers(appUsers)
           setFailed(false)
@@ -55,6 +60,7 @@ export function LeadsPage() {
     if (leadId) void move(leadId, stage)
   }
 
+  const visible = useMemo(() => (rows ? applyFilters(rows, filters) : null), [rows, filters])
   const ownerName = (id: string | null) => users.find((user) => user.id === id)?.full_name
 
   return (
@@ -110,13 +116,19 @@ export function LeadsPage() {
         ))}
       </div>
 
-      {rows && rows.length === 0 && <div className="rounded-card border border-line bg-card p-6 text-muted">{t('pages.leads.empty')}</div>}
+      <LeadFilters filters={filters} onChange={setFilters} users={users} types={types} />
 
-      {rows && rows.length > 0 && view === 'board' && (
+      {visible && visible.length === 0 && (
+        <div className="rounded-card border border-line bg-card p-6 text-muted">
+          {t(rows && rows.length > 0 ? 'pages.leads.emptyFiltered' : 'pages.leads.empty')}
+        </div>
+      )}
+
+      {visible && visible.length > 0 && view === 'board' && (
         <div className="-mx-4 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
           <div className="flex gap-3">
             {BOARD_STAGES.map((stage) => {
-              const cards = rows.filter((row) => row.stage === stage)
+              const cards = visible.filter((row) => row.stage === stage)
               return (
                 <section
                   key={stage}
@@ -175,9 +187,9 @@ export function LeadsPage() {
         </div>
       )}
 
-      {rows && rows.length > 0 && view === 'list' && (
+      {visible && visible.length > 0 && view === 'list' && (
         <ul className="divide-y divide-line rounded-card border border-line bg-card">
-          {rows.map((row) => (
+          {visible.map((row) => (
             <li key={row.id}>
               <Link to={`/leads/${row.id}`} className="flex flex-col gap-1 p-4 hover:bg-page sm:flex-row sm:items-center sm:justify-between">
                 <span className="min-w-0">

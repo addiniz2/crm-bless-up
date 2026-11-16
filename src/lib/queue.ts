@@ -30,7 +30,8 @@ export type QueueRow = {
 
 export type AppUser = { id: string; full_name: string }
 
-export type OwnerFilter = 'ALL' | 'ME' | 'OTHERS' | 'NONE'
+// 'ALL' = todos, 'NONE' = sem responsável, ou o id da usuária.
+export type OwnerFilter = 'ALL' | 'NONE' | (string & {})
 export type QueueFilters = { owner: OwnerFilter; country: Country | ''; leadTypeId: string }
 
 function client() {
@@ -66,11 +67,10 @@ export async function setOwner(leadId: string, ownerId: string | null) {
 }
 
 // Filtragem de apresentação sobre o que o banco já calculou (atrasado, sem próximo passo).
-export function applyFilters(rows: QueueRow[], filters: QueueFilters, me: string): QueueRow[] {
+export function applyFilters<T extends Pick<QueueRow, 'owner_id' | 'country' | 'lead_type_id'>>(rows: T[], filters: QueueFilters): T[] {
   return rows.filter((row) => {
-    if (filters.owner === 'ME' && row.owner_id !== me) return false
-    if (filters.owner === 'OTHERS' && (row.owner_id === null || row.owner_id === me)) return false
     if (filters.owner === 'NONE' && row.owner_id !== null) return false
+    if (filters.owner !== 'ALL' && filters.owner !== 'NONE' && row.owner_id !== filters.owner) return false
     if (filters.country && row.country !== filters.country) return false
     if (filters.leadTypeId && row.lead_type_id !== filters.leadTypeId) return false
     return true
@@ -91,3 +91,5 @@ export function countByTab(rows: QueueRow[]): Record<QueueTab, number> {
   }
   return counts
 }
+
+export const NO_FILTERS: QueueFilters = { owner: 'ALL', country: '', leadTypeId: '' }

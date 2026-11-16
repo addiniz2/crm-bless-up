@@ -2,9 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/context'
-import { COUNTRIES, listLeadTypes, type ListItem } from '../lib/leads'
+import { LeadFilters } from '../components/LeadFilters'
+import { listLeadTypes, type ListItem } from '../lib/leads'
 import {
   QUEUE_STATUSES,
+  NO_FILTERS,
   QUEUE_TABS,
   applyFilters,
   countByTab,
@@ -14,7 +16,6 @@ import {
   setOwner,
   setQueueStatus,
   type AppUser,
-  type OwnerFilter,
   type QueueFilters,
   type QueueRow,
   type QueueStatus,
@@ -36,7 +37,7 @@ export function QueuePage() {
   const [loadFailed, setLoadFailed] = useState(false)
   const [saveFailed, setSaveFailed] = useState(false)
   const [tab, setTab] = useState<QueueTab>('NEW')
-  const [filters, setFilters] = useState<QueueFilters>({ owner: 'ALL', country: '', leadTypeId: '' })
+  const [filters, setFilters] = useState<QueueFilters>(NO_FILTERS)
 
   const fetchAll = useCallback(
     () =>
@@ -55,8 +56,7 @@ export function QueuePage() {
     void fetchAll()
   }, [fetchAll])
 
-  const filtered = useMemo(() => applyFilters(rows ?? [], filters, me), [rows, filters, me])
-  const activeFilters = Number(filters.owner !== 'ALL') + Number(filters.country !== '') + Number(filters.leadTypeId !== '')
+  const filtered = useMemo(() => applyFilters(rows ?? [], filters), [rows, filters])
   const counts = useMemo(() => countByTab(filtered), [filtered])
   const visible = useMemo(() => rowsForTab(filtered, tab), [filtered, tab])
   const dateTime = new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
@@ -100,62 +100,7 @@ export function QueuePage() {
         ))}
       </div>
 
-      {/* No celular os filtros ficam recolhidos para a lista aparecer logo; no computador, abertos. */}
-      <details
-        open={typeof window !== 'undefined' && window.matchMedia?.('(min-width: 768px)').matches}
-        className="mb-4 rounded-card border border-line bg-card"
-      >
-        <summary className="flex min-h-11 cursor-pointer items-center px-4 text-sm font-medium text-ink-soft">
-          {t('pages.queue.filters')}
-          {activeFilters > 0 && <span className="ml-2 rounded-full bg-selected px-2 py-0.5 text-xs text-action">{activeFilters}</span>}
-        </summary>
-        <div className="grid grid-cols-1 gap-3 px-4 pb-4 sm:grid-cols-3">
-        <label className="text-sm text-ink-soft">
-          {t('pages.queue.owner')}
-          <select
-            value={filters.owner}
-            onChange={(e) => setFilters({ ...filters, owner: e.target.value as OwnerFilter })}
-            className={`mt-1 ${selectClass}`}
-          >
-            {(['ALL', 'ME', 'OTHERS', 'NONE'] as const).map((option) => (
-              <option key={option} value={option}>
-                {t(`pages.queue.ownerOptions.${option}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm text-ink-soft">
-          {t('pages.queue.country')}
-          <select
-            value={filters.country}
-            onChange={(e) => setFilters({ ...filters, country: e.target.value as QueueFilters['country'] })}
-            className={`mt-1 ${selectClass}`}
-          >
-            <option value="">{t('pages.queue.all')}</option>
-            {COUNTRIES.map((code) => (
-              <option key={code} value={code}>
-                {t(`codes.country.${code}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm text-ink-soft">
-          {t('pages.queue.leadType')}
-          <select
-            value={filters.leadTypeId}
-            onChange={(e) => setFilters({ ...filters, leadTypeId: e.target.value })}
-            className={`mt-1 ${selectClass}`}
-          >
-            <option value="">{t('pages.queue.all')}</option>
-            {types.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        </div>
-      </details>
+      <LeadFilters filters={filters} onChange={setFilters} users={users} types={types} />
 
       {loadFailed && (
         <div role="alert" className="mb-4 rounded-lg bg-risk-bg p-3 text-sm text-risk">
@@ -250,7 +195,7 @@ export function QueuePage() {
                   <option value="">{t('pages.queue.unassigned')}</option>
                   {users.map((user) => (
                     <option key={user.id} value={user.id}>
-                      {user.id === me ? `${user.full_name} (${t('pages.queue.ownerOptions.ME')})` : user.full_name}
+                      {user.id === me ? `${user.full_name} (${t('pages.queue.me')})` : user.full_name}
                     </option>
                   ))}
                 </select>

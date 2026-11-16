@@ -40,12 +40,6 @@
       "emptyTab": "Nenhum lead nesta aba.",
       "filters": "Filtros",
       "owner": "Responsável",
-      "ownerOptions": {
-        "ALL": "Todas",
-        "ME": "Eu",
-        "OTHERS": "Outra",
-        "NONE": "Sem responsável"
-      },
       "country": "País",
       "leadType": "Tipo",
       "all": "Todos",
@@ -63,7 +57,9 @@
       "pendingDelivery": "Envio não confirmado",
       "whatsappInvalid": "WhatsApp inválido",
       "openLead": "Abrir ficha",
-      "openLeadOf": "Abrir ficha de {{name}}"
+      "openLeadOf": "Abrir ficha de {{name}}",
+      "ownerAll": "Todos",
+      "me": "Eu"
     },
     "leads": {
       "title": "Leads",
@@ -92,7 +88,8 @@
         "USE_CONVERT_LEAD": "Para converter, use o botão Converter na ficha do lead.",
         "LEAD_NOT_FOUND": "Lead não encontrado.",
         "UNKNOWN": "Não foi possível mudar a etapa. Tente de novo."
-      }
+      },
+      "emptyFiltered": "Nenhum lead com estes filtros."
     },
     "opportunities": {
       "title": "Oportunidades",
