@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { FilterPanel } from '../components/FilterPanel'
 import { CUSTOMER_STATUSES, getCustomerIndicators, listCustomers, type CustomerIndicators, type CustomerRow, type CustomerStatus } from '../lib/customers'
 import { formatMoney } from '../lib/opportunities'
 import { listUsers, type AppUser } from '../lib/queue'
@@ -90,8 +91,7 @@ export function CustomersPage() {
         </div>
       )}
 
-      <fieldset className="mb-4 grid grid-cols-1 gap-3 rounded-card border border-line bg-card p-4 sm:grid-cols-3">
-        <legend className="px-1 text-sm font-medium text-ink-soft">{t('pages.customers.filters')}</legend>
+      <FilterPanel active={Number(search.trim() !== '') + Number(status !== '') + Number(owner !== 'ALL')}>
         <label className="text-sm text-ink-soft">
           {t('pages.customers.search')}
           <input
@@ -129,7 +129,7 @@ export function CustomersPage() {
             ))}
           </select>
         </label>
-      </fieldset>
+      </FilterPanel>
 
       {rows && visible.length === 0 && (
         <div className="rounded-card border border-line bg-card p-6 text-muted">
