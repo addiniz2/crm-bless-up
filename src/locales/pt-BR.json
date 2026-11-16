@@ -10,7 +10,14 @@
     "customers": "Clientes",
     "settings": "Configurações",
     "signOut": "Sair",
-    "main": "Navegação principal"
+    "main": "Navegação principal",
+    "short": {
+      "queue": "Fila",
+      "leads": "Leads",
+      "opportunities": "Oportun.",
+      "customers": "Clientes",
+      "settings": "Ajustes"
+    }
   },
   "login": {
     "title": "Entrar no CRM",
