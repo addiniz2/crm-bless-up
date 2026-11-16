@@ -441,5 +441,13 @@
     },
     "convertedTo": "Ver oportunidade",
     "backToQueue": "Voltar para Minha fila"
+  },
+  "search": {
+    "title": "Buscar lead",
+    "label": "Nome, empresa, e-mail ou WhatsApp",
+    "placeholder": "Ex.: Ana, Café Ana, 600 111 222",
+    "hint": "Digite pelo menos 2 letras ou 4 números.",
+    "empty": "Nenhum lead encontrado.",
+    "open": "Buscar"
   }
 }

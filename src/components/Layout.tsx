@@ -45,6 +45,13 @@ const ICONS = {
   ),
 }
 
+const SEARCH_ICON = (
+  <Icon>
+    <circle cx="11" cy="11" r="6.5" />
+    <path d="m20 20-4.2-4.2" />
+  </Icon>
+)
+
 const NAV_ITEMS = [
   { to: '/', key: 'queue', end: true },
   { to: '/leads', key: 'leads', end: false },
@@ -65,6 +72,19 @@ export function Layout() {
         <div className="px-5 py-6 text-lg font-semibold">
           {t('app.name')}
           <span className="text-brand">.</span>
+        </div>
+        <div className="px-3 pb-3">
+          <NavLink
+            to="/busca"
+            className={({ isActive }) =>
+              `flex min-h-11 items-center gap-3 rounded-lg border px-3 text-sm ${
+                isActive ? 'border-action text-action' : 'border-line text-muted hover:border-action hover:text-action'
+              }`
+            }
+          >
+            {SEARCH_ICON}
+            {t('search.title')}
+          </NavLink>
         </div>
         <nav aria-label={t('nav.main')} className="px-3">
           <ul className="flex flex-col gap-1">
@@ -102,9 +122,14 @@ export function Layout() {
           {t('app.name')}
           <span className="text-brand">.</span>
         </span>
-        <button type="button" onClick={() => void signOut()} className="min-h-11 rounded-lg px-3 text-sm text-muted">
-          {t('nav.signOut')}
-        </button>
+        <div className="flex items-center gap-1">
+          <NavLink to="/busca" aria-label={t('search.title')} className="inline-flex size-11 items-center justify-center rounded-lg text-ink-soft">
+            {SEARCH_ICON}
+          </NavLink>
+          <button type="button" onClick={() => void signOut()} className="min-h-11 rounded-lg px-3 text-sm text-muted">
+            {t('nav.signOut')}
+          </button>
+        </div>
       </header>
 
       <main className="mx-auto w-full min-w-0 max-w-[1600px] flex-1 px-4 pt-4 pb-24 md:px-6 md:py-6 lg:px-8">

@@ -234,4 +234,19 @@ do $$ declare v uuid; v2 uuid; r public.lead%rowtype; begin
     raise exception 'FALHA: lead de teste / número inválido %', row_to_json(r); end if;
 end $$;
 
+-- Busca rápida
+set role authenticated; select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+do $$ begin
+  if not exists (select 1 from public.search_leads('marta lopez')) then raise exception 'FALHA: busca sem acento'; end if;
+  if not exists (select 1 from public.search_leads('600 999')) then raise exception 'FALHA: busca por telefone'; end if;
+  if not exists (select 1 from public.search_leads('BIA@MAIL')) then raise exception 'FALHA: busca por e-mail'; end if;
+  if exists (select 1 from public.search_leads('a')) then raise exception 'FALHA: termo curto'; end if;
+end $$;
+reset role;
+set role authenticated; select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+do $$ begin
+  if exists (select 1 from public.search_leads('marta')) then raise exception 'FALHA: intruso na busca'; end if;
+end $$;
+reset role;
+
 select 'TODOS_OS_TESTES_OK' as resultado;

@@ -13,6 +13,7 @@ import { NotFoundPage } from './pages/NotFoundPage'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 import { QueuePage } from './pages/QueuePage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
+import { SearchPage } from './pages/SearchPage'
 
 export function AppRoutes() {
   return (
@@ -29,6 +30,7 @@ export function AppRoutes() {
             <Route path="leads/:id" element={<LeadDetailPage />} />
             <Route path="oportunidades" element={<OpportunitiesPage />} />
             <Route path="clientes" element={<CustomersPage />} />
+            <Route path="busca" element={<SearchPage />} />
             <Route path="configuracoes" element={<PlaceholderPage page="settings" />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
