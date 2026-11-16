@@ -113,4 +113,35 @@ do $$ begin
 end $$;
 reset role;
 
+-- BU-09/BU-10: contato, Iniciar conversa e indicadores
+set role authenticated; select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+insert into public.lead (id, full_name, whatsapp, country, lead_type_id)
+values ('cccccccc-0000-0000-0000-000000000003','Caio','34611222333','ES','aaaaaaaa-0000-0000-0000-000000000001');
+do $$ declare r public.lead%rowtype; begin
+  begin perform public.register_activity('cccccccc-0000-0000-0000-000000000003','CALL','  '); raise exception 'FALHA: contato sem texto';
+  exception when others then if sqlerrm <> 'ACTIVITY_BODY_REQUIRED' then raise; end if; end;
+  begin perform public.register_activity('cccccccc-0000-0000-0000-000000000003','CALL','ok','Ligar'); raise exception 'FALHA: próximo passo sem data';
+  exception when others then if sqlerrm <> 'NEXT_STEP_DATE_REQUIRED' then raise; end if; end;
+
+  perform public.register_activity('cccccccc-0000-0000-0000-000000000003','NOTE','só uma nota');
+  select * into r from public.lead where id='cccccccc-0000-0000-0000-000000000003';
+  if r.queue_status <> 'NEW' or r.last_contact_at is not null then raise exception 'FALHA: nota contou como contato'; end if;
+
+  perform public.register_activity('cccccccc-0000-0000-0000-000000000003','CALL','Falei com o Caio','Enviar proposta', now() + interval '1 day');
+  select * into r from public.lead where id='cccccccc-0000-0000-0000-000000000003';
+  if r.queue_status <> 'IN_PROGRESS' or r.last_contact_at is null or r.next_step <> 'Enviar proposta' then raise exception 'FALHA: contato'; end if;
+
+  perform public.register_conversation_started('cccccccc-0000-0000-0000-000000000003','Olá Caio');
+  select * into r from public.lead where id='cccccccc-0000-0000-0000-000000000003';
+  if r.queue_status <> 'AWAITING_REPLY' or r.next_step <> 'Enviar proposta' then raise exception 'FALHA: Iniciar conversa'; end if;
+  if (select count(*) from public.activity where lead_id='cccccccc-0000-0000-0000-000000000003') <> 3 then raise exception 'FALHA: atividades'; end if;
+
+  begin perform public.register_activity('cccccccc-0000-0000-0000-000000000001','CALL','x'); raise exception 'FALHA: contato em lead convertido';
+  exception when others then if sqlerrm <> 'LEAD_READ_ONLY' then raise; end if; end;
+
+  if (public.lead_indicators() ->> 'converted_this_month')::int < 1 then raise exception 'FALHA: indicador convertidos'; end if;
+end $$;
+select public.lead_indicators() as indicadores;
+reset role;
+
 select 'TODOS_OS_TESTES_OK' as resultado;

@@ -70,7 +70,25 @@
       "colType": "Tipo",
       "colCountry": "País",
       "colStage": "Etapa",
-      "colCreated": "Cadastro"
+      "colCreated": "Cadastro",
+      "indicators": {
+        "in_funnel": "No funil",
+        "new_this_week": "Novos na semana",
+        "meetings_scheduled": "Reuniões agendadas",
+        "converted_this_month": "Convertidos no mês"
+      },
+      "viewBoard": "Kanban",
+      "viewList": "Lista",
+      "view": "Visualização",
+      "moveTo": "Etapa de {{name}}",
+      "dropHere": "Soltar aqui",
+      "stageError": {
+        "DISQUALIFICATION_REASON_REQUIRED": "Escolha o motivo da desqualificação.",
+        "LEAD_READ_ONLY": "Lead convertido não muda de etapa.",
+        "USE_CONVERT_LEAD": "Para converter, use o botão Converter na ficha do lead.",
+        "LEAD_NOT_FOUND": "Lead não encontrado.",
+        "UNKNOWN": "Não foi possível mudar a etapa. Tente de novo."
+      }
     },
     "opportunities": {
       "title": "Oportunidades",
@@ -156,6 +174,13 @@
       "ES": "Espanha (+34)",
       "BR": "Brasil (+55)",
       "OTHER": "Outro país"
+    },
+    "activityKind": {
+      "CALL": "Ligação",
+      "WHATSAPP": "WhatsApp",
+      "EMAIL": "E-mail",
+      "MEETING": "Reunião",
+      "NOTE": "Nota"
     }
   },
   "common": {
@@ -205,5 +230,98 @@
       "UNKNOWN": "Não foi possível salvar o lead. Tente de novo."
     },
     "phoneCountry": "Código do país do WhatsApp"
+  },
+  "leadDetail": {
+    "back": "Voltar para Leads",
+    "notFound": "Lead não encontrado.",
+    "readOnly": "Lead convertido: a ficha fica somente leitura.",
+    "disqualified": "Desqualificado: {{reason}}",
+    "sections": {
+      "contact": "Contato",
+      "business": "Negócio",
+      "origin": "Origem e rastreamento",
+      "meta": "Formulário da Meta",
+      "answers": "Respostas do formulário",
+      "timeline": "Linha do tempo"
+    },
+    "fields": {
+      "whatsapp": "WhatsApp",
+      "email": "E-mail",
+      "country": "País",
+      "company": "Empresa",
+      "leadType": "Tipo de lead",
+      "revenueBand": "Faturamento mensal",
+      "mainGoal": "Objetivo principal",
+      "howFound": "Como conheceu",
+      "notes": "Observações",
+      "source": "Origem",
+      "channel": "Canal",
+      "stage": "Etapa",
+      "queueStatus": "Situação",
+      "owner": "Responsável",
+      "nextStep": "Próximo passo",
+      "lastContact": "Último contato",
+      "createdAt": "Cadastrado em",
+      "utm": "UTMs",
+      "clickIds": "Identificadores de clique",
+      "pageUrl": "Página",
+      "metaLeadId": "ID do lead na Meta",
+      "metaForm": "Formulário",
+      "metaCampaign": "Campanha",
+      "metaAd": "Anúncio",
+      "metaPlatform": "Plataforma",
+      "metaOrganic": "Orgânico"
+    },
+    "yes": "Sim",
+    "no": "Não",
+    "actions": {
+      "startConversation": "Iniciar conversa",
+      "registerContact": "Registrar contato",
+      "disqualify": "Desqualificar",
+      "convert": "Converter"
+    },
+    "convertSoon": "A conversão em conta e oportunidade chega no próximo item (BU-11).",
+    "conversation": {
+      "title": "Iniciar conversa no WhatsApp",
+      "template": "Mensagem modelo",
+      "noTemplate": "Sem mensagem modelo",
+      "noTemplates": "Nenhuma mensagem modelo cadastrada ainda. A conversa abre sem texto.",
+      "message": "Mensagem",
+      "open": "Abrir WhatsApp",
+      "noWhatsapp": "Este lead não tem WhatsApp válido."
+    },
+    "contact": {
+      "title": "Registrar contato",
+      "kind": "Tipo",
+      "body": "O que aconteceu",
+      "nextStep": "Próximo passo",
+      "nextStepAt": "Data e hora do próximo passo",
+      "nextStepHint": "Sem próximo passo, o lead aparece com alerta na Minha fila.",
+      "save": "Salvar contato"
+    },
+    "disqualifyDialog": {
+      "title": "Desqualificar lead",
+      "reason": "Motivo",
+      "noReasons": "Nenhum motivo de desqualificação cadastrado ainda.",
+      "confirm": "Desqualificar"
+    },
+    "activityError": {
+      "ACTIVITY_BODY_REQUIRED": "Descreva o contato em poucas palavras.",
+      "NEXT_STEP_DATE_REQUIRED": "Informe a data e a hora do próximo passo.",
+      "WHATSAPP_REQUIRED": "Este lead não tem WhatsApp válido.",
+      "LEAD_READ_ONLY": "Lead convertido: a ficha fica somente leitura.",
+      "UNKNOWN": "Não foi possível salvar. Tente de novo."
+    },
+    "timeline": {
+      "empty": "Nenhum registro ainda.",
+      "by": "por {{name}}",
+      "system": "sistema",
+      "stage": "Etapa: {{from}} → {{to}}",
+      "queue_status": "Situação: {{from}} → {{to}}",
+      "owner_id": "Responsável: {{from}} → {{to}}",
+      "nobody": "ninguém",
+      "created": "Lead cadastrado",
+      "nextStep": "Próximo passo: {{when}}{{what}}"
+    }
   }
 }

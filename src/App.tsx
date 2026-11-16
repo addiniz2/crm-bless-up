@@ -3,6 +3,7 @@ import { AuthProvider } from './auth/AuthProvider'
 import { RecoveryRedirect } from './auth/RecoveryRedirect'
 import { RequireAuth } from './auth/RequireAuth'
 import { Layout } from './components/Layout'
+import { LeadDetailPage } from './pages/LeadDetailPage'
 import { LeadsPage } from './pages/LeadsPage'
 import { LoginPage } from './pages/LoginPage'
 import { NewLeadPage } from './pages/NewLeadPage'
@@ -23,6 +24,7 @@ export function AppRoutes() {
             <Route index element={<QueuePage />} />
             <Route path="leads" element={<LeadsPage />} />
             <Route path="leads/novo" element={<NewLeadPage />} />
+            <Route path="leads/:id" element={<LeadDetailPage />} />
             <Route path="oportunidades" element={<PlaceholderPage page="opportunities" />} />
             <Route path="clientes" element={<PlaceholderPage page="customers" />} />
             <Route path="configuracoes" element={<PlaceholderPage page="settings" />} />

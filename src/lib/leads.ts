@@ -36,17 +36,6 @@ export type LeadDraft = {
 
 export type Duplicate = { id: string; full_name: string; company_name: string | null; stage: string }
 
-export type LeadRow = {
-  id: string
-  full_name: string
-  company_name: string | null
-  country: Country | null
-  stage: string
-  queue_status: string
-  created_at: string
-  lead_type: { name: string } | null
-}
-
 export type SaveError = 'WHATSAPP_INVALID' | 'REQUIRED_MISSING' | 'UNKNOWN'
 
 function client() {
@@ -108,15 +97,4 @@ export async function createLead(draft: LeadDraft, userId: string): Promise<{ id
     .single()
   if (error) return { error: saveErrorFrom(error) }
   return { id: data.id }
-}
-
-export async function listLeads(): Promise<LeadRow[]> {
-  const { data, error } = await client()
-    .from('lead')
-    .select('id, full_name, company_name, country, stage, queue_status, created_at, lead_type:lead_type_id (name)')
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false })
-    .limit(200)
-  if (error) throw error
-  return data as unknown as LeadRow[]
 }
