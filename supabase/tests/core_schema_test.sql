@@ -205,4 +205,33 @@ do $$ begin
 end $$;
 reset role;
 
+-- BU-14: entrada de leads da Meta (roda como a Edge Function, sem RLS)
+do $$ declare v uuid; v2 uuid; r public.lead%rowtype; begin
+  v := public.ingest_meta_lead(
+    '{"id":"9001","created_time":"2026-11-15T10:00:00+0000","ad_id":"A1","form_id":"F1",
+      "campaign_name":"Campanha Odonto","platform":"ig","is_organic":false,
+      "custom_disclaimer_responses":[{"checkbox_key":"optional_1","is_checked":"1"}],
+      "field_data":[{"name":"full_name","values":["Marta López"]},{"name":"phone_number","values":["+34 600 999 888"]},
+                    {"name":"email","values":["Marta@Example.es"]},{"name":"faturamento_mensal","values":["from_5k_to_10k"]},
+                    {"name":"qual_servico","values":["tráfego"]}]}'::jsonb,
+    '{"leadgen_id":"9001","page_id":"P1","form_id":"F1","adgroup_id":"G1","ad_id":"A1","created_time":1794780000}'::jsonb);
+  select * into r from public.lead where id = v;
+  if r.whatsapp <> '34600999888' or r.country <> 'ES' or r.email <> 'marta@example.es' or r.revenue_band <> 'FROM_5K_TO_10K'
+     or r.capture_channel <> 'INSTANT_FORM' or r.meta_adset_id <> 'G1' or r.meta_page_id <> 'P1' or r.meta_platform <> 'ig'
+     or r.meta_is_organic is distinct from false or r.form_answers -> 'qual_servico' ->> 0 <> 'tráfego' or r.meta_raw is null then
+    raise exception 'FALHA: mapeamento da Meta %', row_to_json(r); end if;
+  if not r.needs_completion then raise exception 'FALHA: sem tipo deveria pedir para completar'; end if;
+  if (select lead_type_id from public.meta_form where form_id = 'F1') is not null then raise exception 'FALHA: formulário novo'; end if;
+
+  v2 := public.ingest_meta_lead('{"id":"9001","field_data":[]}'::jsonb, '{}'::jsonb);
+  if v2 <> v or (select count(*) from public.lead where meta_lead_id = '9001') <> 1 then raise exception 'FALHA: lead_id duplicado'; end if;
+
+  update public.meta_form set lead_type_id = 'aaaaaaaa-0000-0000-0000-000000000001', default_country = 'BR' where form_id = 'F1';
+  v := public.ingest_meta_lead('{"id":"9002","form_id":"F1","field_data":[{"name":"full_name","values":["<test lead: dummy data for full_name>"]},
+    {"name":"phone_number","values":["123"]}]}'::jsonb, '{"page_id":"P1"}'::jsonb);
+  select * into r from public.lead where id = v;
+  if r.whatsapp is not null or not r.needs_completion or not r.is_test or r.country <> 'BR' or r.lead_type_id is null then
+    raise exception 'FALHA: lead de teste / número inválido %', row_to_json(r); end if;
+end $$;
+
 select 'TODOS_OS_TESTES_OK' as resultado;
