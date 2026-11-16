@@ -75,7 +75,7 @@ describe('oportunidades', () => {
         <OpportunitiesPage />
       </MemoryRouter>,
     )
-    await user.selectOptions(await screen.findByLabelText('Etapa de Café Ana'), 'LOST')
+    await user.selectOptions((await screen.findAllByLabelText('Etapa de Café Ana'))[0], 'LOST')
     expect(api.changeOpportunityStage).not.toHaveBeenCalled()
     await user.selectOptions(await screen.findByLabelText('Motivo da perda'), 'r1')
     await user.click(screen.getByRole('button', { name: 'Marcar como perdida' }))

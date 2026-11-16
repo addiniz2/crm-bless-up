@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState, type DragEvent, type FormEvent } from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Dialog } from '../components/Dialog'
+import { StageBoard } from '../components/StageBoard'
 import type { ListItem } from '../lib/leads'
 import {
   OPPORTUNITY_STAGES,
@@ -33,7 +34,6 @@ export function OpportunitiesPage() {
   const [failed, setFailed] = useState(false)
   const [error, setError] = useState<OpportunityError | null>(null)
   const [losing, setLosing] = useState<OpportunityCard | null>(null)
-  const [dragOver, setDragOver] = useState<OpportunityStage | null>(null)
 
   const fetchAll = useCallback(
     () =>
@@ -63,13 +63,6 @@ export function OpportunitiesPage() {
     const result = await changeOpportunityStage(card.id, stage)
     if (result) setError(result)
     await fetchAll()
-  }
-
-  function onDrop(event: DragEvent, stage: OpportunityStage) {
-    event.preventDefault()
-    setDragOver(null)
-    const card = cards?.find((item) => item.id === event.dataTransfer.getData('text/plain'))
-    if (card) void move(card, stage)
   }
 
   const money = (value: number | null, currency: OpportunityCard['currency']) => formatMoney(value, currency, i18n.language)
@@ -106,82 +99,57 @@ export function OpportunitiesPage() {
       )}
 
       {cards && cards.length > 0 && (
-        <div className="-mx-4 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
-          <div className="flex gap-3">
-            {OPPORTUNITY_STAGES.map((stage) => {
-              const column = cards.filter((card) => card.stage === stage)
-              return (
-                <section
-                  key={stage}
-                  aria-label={t(`codes.opportunityStage.${stage}`)}
-                  onDragOver={(event) => {
-                    event.preventDefault()
-                    setDragOver(stage)
-                  }}
-                  onDragLeave={() => setDragOver(null)}
-                  onDrop={(event) => onDrop(event, stage)}
-                  className={`flex w-72 shrink-0 flex-col rounded-card border p-3 ${
-                    dragOver === stage ? 'border-action bg-selected' : 'border-line bg-page'
-                  }`}
-                >
-                  <h2 className="mb-3 flex items-center justify-between text-sm font-semibold">
-                    {t(`codes.opportunityStage.${stage}`)}
-                    <span className="rounded-full bg-card px-2 py-0.5 text-xs text-muted">{column.length}</span>
-                  </h2>
-                  <ul className="space-y-2">
-                    {column.map((card) => {
-                      const closed = card.stage === 'WON' || card.stage === 'LOST'
-                      return (
-                        <li
-                          key={card.id}
-                          draggable={!closed}
-                          onDragStart={(event) => event.dataTransfer.setData('text/plain', card.id)}
-                          className={`rounded-lg border bg-card p-3 ${card.id === highlight ? 'border-action' : 'border-line'}`}
-                        >
-                          <p className="font-medium break-words">{card.account_name}</p>
-                          <p className="text-sm font-semibold text-ink-soft">{money(card.monthly_value, card.currency)}</p>
-                          <p className="text-xs text-muted">
-                            {[card.contact_name, t(`codes.country.${card.country}`), ownerName(card.owner_id)].filter(Boolean).join(' · ')}
-                          </p>
-                          {card.expected_close_date && !closed && (
-                            <p className={`text-xs ${card.is_late ? 'text-risk' : 'text-muted'}`}>
-                              {card.is_late
-                                ? t('pages.opportunities.late')
-                                : t('pages.opportunities.expected', { date: date.format(new Date(card.expected_close_date)) })}
-                            </p>
-                          )}
-                          {card.stage === 'LOST' && card.loss_reason_name && (
-                            <p className="text-xs text-muted">{t('pages.opportunities.lossReason', { reason: card.loss_reason_name })}</p>
-                          )}
-                          {card.stage === 'WON' && <p className="text-xs text-healthy">{t('pages.opportunities.customer')}</p>}
-                          {card.source_lead_id && (
-                            <Link to={`/leads/${card.source_lead_id}`} className="mt-1 inline-flex min-h-9 items-center text-xs text-action">
-                              {t('pages.opportunities.fromLead')}
-                            </Link>
-                          )}
-                          {!closed && (
-                            <select
-                              aria-label={t('pages.opportunities.moveTo', { name: card.account_name })}
-                              value={card.stage}
-                              onChange={(event) => void move(card, event.target.value as OpportunityStage)}
-                              className="mt-2 min-h-11 w-full rounded-lg border border-line bg-card px-2 text-sm"
-                            >
-                              {OPPORTUNITY_STAGES.map((option) => (
-                                <option key={option} value={option}>
-                                  {t(`codes.opportunityStage.${option}`)}
-                                </option>
-                              ))}
-                            </select>
-                          )}
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </section>
-              )
-            })}
-          </div>
-        </div>
+        <StageBoard
+          ariaLabel={t('pages.opportunities.title')}
+          stages={OPPORTUNITY_STAGES}
+          items={cards}
+          stageOf={(card) => card.stage}
+          stageLabel={(stage) => t(`codes.opportunityStage.${stage}`)}
+          canDrag={(card) => card.stage !== 'WON' && card.stage !== 'LOST'}
+          onMove={(card, stage) => void move(card, stage as OpportunityStage)}
+          renderCard={(card) => {
+            const closed = card.stage === 'WON' || card.stage === 'LOST'
+            return (
+              <div className={card.id === highlight ? 'rounded-md ring-2 ring-action ring-offset-2' : ''}>
+                <p className="truncate text-sm font-medium">{card.account_name}</p>
+                <p className="text-sm font-semibold text-ink-soft">{money(card.monthly_value, card.currency)}</p>
+                <p className="truncate text-xs text-muted">
+                  {[card.contact_name, t(`codes.country.${card.country}`), ownerName(card.owner_id)].filter(Boolean).join(' · ')}
+                </p>
+                {card.expected_close_date && !closed && (
+                  <p className={`truncate text-xs ${card.is_late ? 'text-risk' : 'text-muted'}`}>
+                    {card.is_late
+                      ? t('pages.opportunities.late')
+                      : t('pages.opportunities.expected', { date: date.format(new Date(card.expected_close_date)) })}
+                  </p>
+                )}
+                {card.stage === 'LOST' && card.loss_reason_name && (
+                  <p className="truncate text-xs text-muted">{t('pages.opportunities.lossReason', { reason: card.loss_reason_name })}</p>
+                )}
+                {card.stage === 'WON' && <p className="text-xs text-healthy">{t('pages.opportunities.customer')}</p>}
+                {card.source_lead_id && (
+                  <Link to={`/leads/${card.source_lead_id}`} className="mt-1 inline-flex min-h-9 items-center text-xs text-action">
+                    {t('pages.opportunities.fromLead')}
+                  </Link>
+                )}
+                {!closed && (
+                  <select
+                    aria-label={t('pages.opportunities.moveTo', { name: card.account_name })}
+                    value={card.stage}
+                    onChange={(event) => void move(card, event.target.value as OpportunityStage)}
+                    className="mt-2 min-h-11 w-full rounded-lg border border-line bg-card px-2 text-sm lg:hidden"
+                  >
+                    {OPPORTUNITY_STAGES.map((option) => (
+                      <option key={option} value={option}>
+                        {t(`codes.opportunityStage.${option}`)}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            )
+          }}
+        />
       )}
 
       {losing && (

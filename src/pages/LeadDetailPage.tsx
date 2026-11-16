@@ -24,7 +24,7 @@ import {
   type TimelineItem,
 } from '../lib/leadDetail'
 import { DIAL_CODE, PHONE_COUNTRIES, composeWhatsapp, formatNational, formatStoredWhatsapp, type PhoneCountry } from '../lib/phone'
-import { changeLeadStage, listReasons, type StageError } from '../lib/pipeline'
+import { BOARD_STAGES, changeLeadStage, listReasons, type StageError } from '../lib/pipeline'
 import { listUsers, type AppUser } from '../lib/queue'
 import type { ListItem, SaveError } from '../lib/leads'
 
@@ -53,6 +53,7 @@ export function LeadDetailPage() {
   const [users, setUsers] = useState<AppUser[]>([])
   const [failed, setFailed] = useState(false)
   const [panel, setPanel] = useState<Panel>(null)
+  const [stageError, setStageError] = useState<StageError | null>(null)
 
   const fetchAll = useCallback(
     () =>
@@ -147,6 +148,33 @@ export function LeadDetailPage() {
           </p>
         )}
       </header>
+
+      {!closed && (
+        <label className="mb-3 block max-w-xs text-sm font-medium text-ink-soft">
+          {t('leadDetail.fields.stage')}
+          <select
+            value={lead.stage}
+            onChange={async (event) => {
+              setStageError(null)
+              const result = await changeLeadStage(lead.id, event.target.value)
+              if (result) setStageError(result)
+              await fetchAll()
+            }}
+            className={inputClass}
+          >
+            {BOARD_STAGES.map((stage) => (
+              <option key={stage} value={stage}>
+                {t(`codes.leadStage.${stage}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      {stageError && (
+        <p role="alert" className="mb-3 text-sm text-risk">
+          {t(`pages.leads.stageError.${stageError}`)}
+        </p>
+      )}
 
       {!closed && (
         <div className="mb-6 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">

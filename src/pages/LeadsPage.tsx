@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState, type DragEvent } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { BOARD_STAGES, changeLeadStage, getIndicators, type BoardStage, type Indicators, type StageError } from '../lib/pipeline'
 import { LeadFilters } from '../components/LeadFilters'
+import { StageBoard } from '../components/StageBoard'
 import { listLeadTypes, type ListItem } from '../lib/leads'
 import { NO_FILTERS, applyFilters, listQueue, listUsers, type AppUser, type QueueFilters, type QueueRow } from '../lib/queue'
 
@@ -20,7 +21,6 @@ export function LeadsPage() {
   const [failed, setFailed] = useState(false)
   const [stageError, setStageError] = useState<StageError | null>(null)
   const [view, setView] = useState<View>('board')
-  const [dragOver, setDragOver] = useState<BoardStage | null>(null)
   const [types, setTypes] = useState<ListItem[]>([])
   const [filters, setFilters] = useState<QueueFilters>(NO_FILTERS)
 
@@ -51,13 +51,6 @@ export function LeadsPage() {
     const error = await changeLeadStage(leadId, stage)
     if (error) setStageError(error)
     await fetchAll()
-  }
-
-  function onDrop(event: DragEvent, stage: BoardStage) {
-    event.preventDefault()
-    setDragOver(null)
-    const leadId = event.dataTransfer.getData('text/plain')
-    if (leadId) void move(leadId, stage)
   }
 
   const visible = useMemo(() => (rows ? applyFilters(rows, filters) : null), [rows, filters])
@@ -125,66 +118,40 @@ export function LeadsPage() {
       )}
 
       {visible && visible.length > 0 && view === 'board' && (
-        <div className="-mx-4 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
-          <div className="flex gap-3">
-            {BOARD_STAGES.map((stage) => {
-              const cards = visible.filter((row) => row.stage === stage)
-              return (
-                <section
-                  key={stage}
-                  aria-label={t(`codes.leadStage.${stage}`)}
-                  onDragOver={(event) => {
-                    event.preventDefault()
-                    setDragOver(stage)
-                  }}
-                  onDragLeave={() => setDragOver(null)}
-                  onDrop={(event) => onDrop(event, stage)}
-                  className={`flex w-72 shrink-0 flex-col rounded-card border p-3 ${
-                    dragOver === stage ? 'border-action bg-selected' : 'border-line bg-page'
-                  }`}
-                >
-                  <h2 className="mb-3 flex items-center justify-between text-sm font-semibold">
-                    {t(`codes.leadStage.${stage}`)}
-                    <span className="rounded-full bg-card px-2 py-0.5 text-xs text-muted">{cards.length}</span>
-                  </h2>
-                  <ul className="space-y-2">
-                    {cards.map((row) => (
-                      <li
-                        key={row.id}
-                        draggable
-                        onDragStart={(event) => event.dataTransfer.setData('text/plain', row.id)}
-                        className="rounded-lg border border-line bg-card p-3"
-                      >
-                        <Link to={`/leads/${row.id}`} className="block font-medium text-ink hover:text-action">
-                          {row.full_name}
-                        </Link>
-                        <p className="truncate text-xs text-muted">
-                          {[row.company_name, row.lead_type_name, row.country && t(`codes.country.${row.country}`)].filter(Boolean).join(' · ')}
-                        </p>
-                        <p className={`mt-1 text-xs ${row.owner_id ? 'text-ink-soft' : 'text-warning'}`}>
-                          {ownerName(row.owner_id) ?? t('pages.queue.unassigned')}
-                          {row.is_overdue && <span className="ml-2 text-risk">· {t('pages.queue.overdue')}</span>}
-                        </p>
-                        <select
-                          aria-label={t('pages.leads.moveTo', { name: row.full_name })}
-                          value={row.stage}
-                          onChange={(event) => void move(row.id, event.target.value as BoardStage)}
-                          className="mt-2 min-h-11 w-full rounded-lg border border-line bg-card px-2 text-sm"
-                        >
-                          {BOARD_STAGES.map((option) => (
-                            <option key={option} value={option}>
-                              {t(`codes.leadStage.${option}`)}
-                            </option>
-                          ))}
-                        </select>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )
-            })}
-          </div>
-        </div>
+        <StageBoard
+          ariaLabel={t('pages.leads.title')}
+          stages={BOARD_STAGES}
+          items={visible}
+          stageOf={(row) => row.stage}
+          stageLabel={(stage) => t(`codes.leadStage.${stage}`)}
+          onMove={(row, stage) => void move(row.id, stage as BoardStage)}
+          renderCard={(row) => (
+            <>
+              <Link to={`/leads/${row.id}`} className="block truncate text-sm font-medium text-ink hover:text-action">
+                {row.full_name}
+              </Link>
+              <p className="truncate text-xs text-muted">
+                {[row.company_name, row.lead_type_name, row.country && t(`codes.country.${row.country}`)].filter(Boolean).join(' · ')}
+              </p>
+              <p className={`mt-1 truncate text-xs ${row.owner_id ? 'text-ink-soft' : 'text-warning'}`}>
+                {ownerName(row.owner_id) ?? t('pages.queue.unassigned')}
+                {row.is_overdue && <span className="ml-1 text-risk">· {t('pages.queue.overdue')}</span>}
+              </p>
+              <select
+                aria-label={t('pages.leads.moveTo', { name: row.full_name })}
+                value={row.stage}
+                onChange={(event) => void move(row.id, event.target.value as BoardStage)}
+                className="mt-2 min-h-11 w-full rounded-lg border border-line bg-card px-2 text-sm lg:hidden"
+              >
+                {BOARD_STAGES.map((option) => (
+                  <option key={option} value={option}>
+                    {t(`codes.leadStage.${option}`)}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
+        />
       )}
 
       {visible && visible.length > 0 && view === 'list' && (
