@@ -530,5 +530,28 @@
     },
     "duration": "Leva menos de 1 minuto",
     "safe": "Seus dados estão protegidos"
+  },
+  "metaEvents": {
+    "title": "Eventos enviados à Meta",
+    "empty": "Nenhum evento registrado ainda.",
+    "names": {
+      "FirstInteraction": "Primeira interação",
+      "SubmitScheduled": "Formulário enviado",
+      "LeadMQL": "Lead qualificado (MQL)",
+      "FakeLead": "Lead falso/desqualificado"
+    },
+    "status": {
+      "PENDING": "Na fila",
+      "SENDING": "Enviando",
+      "SENT": "Enviado",
+      "FAILED": "Falhou",
+      "EXPIRED": "Expirado (mais de 7 dias)"
+    },
+    "retryButton": "Reenviar",
+    "retry": {
+      "OK": "Evento colocado de novo na fila.",
+      "EVENT_NOT_RETRYABLE": "Este evento não pode mais ser reenviado (prazo de 7 dias da Meta).",
+      "UNKNOWN": "Não foi possível reenviar. Tente de novo."
+    }
   }
 }

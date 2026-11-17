@@ -432,3 +432,7 @@ verify_jwt = false
 # Formulário público do site: visitante não tem login; a função valida origem, anti-robô e regras no banco.
 [functions.site-form]
 verify_jwt = false
+
+# Envio de eventos à Meta: chamado pelo pg_cron; a função confere o cabeçalho x-dispatch-secret.
+[functions.meta-capi-dispatch]
+verify_jwt = false

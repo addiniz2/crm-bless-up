@@ -22,6 +22,7 @@ export type LeadDetail = {
   is_mql: boolean | null
   ad_budget_fit: boolean | null
   ad_budget_range: string | null
+  site_form_id: string | null
   capture_channel: string
   revenue_band: string | null
   main_goal: string | null
@@ -212,4 +213,32 @@ export function renderTemplate(body: string, values: { firstName: string; compan
 // Link oficial "clique para conversar" do WhatsApp.
 export function whatsappLink(whatsapp: string, message: string): string {
   return message ? `https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}` : `https://wa.me/${whatsapp}`
+}
+
+// BU-18: eventos enviados à Meta pela API de Conversões (registro e reenvio manual)
+export type MetaEvent = {
+  id: string
+  event_name: string
+  event_time: string
+  status: 'PENDING' | 'SENDING' | 'SENT' | 'FAILED' | 'EXPIRED'
+  attempts: number
+  sent_at: string | null
+  last_error: string | null
+}
+
+export async function listMetaEvents(leadId: string): Promise<MetaEvent[]> {
+  const { data, error } = await client()
+    .from('meta_event')
+    .select('id, event_name, event_time, status, attempts, sent_at, last_error')
+    .eq('lead_id', leadId)
+    .is('deleted_at', null)
+    .order('event_time')
+  if (error) throw error
+  return (data ?? []) as MetaEvent[]
+}
+
+export async function retryMetaEvent(id: string): Promise<'OK' | 'EVENT_NOT_RETRYABLE' | 'UNKNOWN'> {
+  const { error } = await client().rpc('retry_meta_event', { p_id: id })
+  if (!error) return 'OK'
+  return error.message.includes('EVENT_NOT_RETRYABLE') ? 'EVENT_NOT_RETRYABLE' : 'UNKNOWN'
 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Dialog } from '../components/Dialog'
+import { MetaEventsCard } from '../components/MetaEventsCard'
 import { useToast } from '../components/Toast'
 import { ContactDialog, ConversationDialog, DeliveryConfirmation } from '../components/LeadActionDialogs'
 import { currencyOf } from '../lib/leads'
@@ -260,6 +261,8 @@ export function LeadDetailPage() {
               <Info label={t('leadDetail.fields.pageUrl')}>{lead.page_url}</Info>
             </dl>
           </div>
+
+          {lead.site_form_id && <MetaEventsCard leadId={lead.id} formatDate={formatDate} />}
 
           {lead.meta_lead_id && (
             <div className="rounded-card border border-line bg-card p-4">

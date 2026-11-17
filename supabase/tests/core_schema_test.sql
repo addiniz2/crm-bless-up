@@ -340,4 +340,75 @@ exception when insufficient_privilege then null;
 end $$;
 reset role;
 
+-- 20261116000012: fila de eventos para a Meta
+do $$
+declare
+  v_ana uuid := (select id from public.lead where full_name = 'Ana Form');
+  v_beto uuid := (select id from public.lead where full_name = 'Beto');
+  v_reason uuid := (select id from public.reason where kind = 'DISQUALIFICATION' limit 1);
+  r record;
+  n integer;
+begin
+  if not exists (select 1 from public.meta_event where lead_id = v_ana and event_name = 'FirstInteraction' and event_id = 'ev-1') then
+    raise exception 'FALHA: FirstInteraction com o mesmo ID do Pixel';
+  end if;
+  if not exists (select 1 from public.meta_event where lead_id = v_ana and event_name = 'LeadMQL' and event_id = 'ev-3') then
+    raise exception 'FALHA: LeadMQL';
+  end if;
+  if not exists (select 1 from public.meta_event where lead_id = v_ana and event_name = 'SubmitScheduled') then
+    raise exception 'FALHA: SubmitScheduled';
+  end if;
+  if exists (select 1 from public.meta_event where lead_id = v_beto and event_name = 'LeadMQL') then
+    raise exception 'FALHA: LeadMQL para quem não é qualificado';
+  end if;
+  if exists (select 1 from public.meta_event e join public.lead l on l.id = e.lead_id where l.site_form_id is null) then
+    raise exception 'FALHA: evento para lead que não veio do formulário';
+  end if;
+
+  perform set_config('crm.stage_change', 'on', true);
+  update public.lead set stage = 'DISQUALIFIED', disqualification_reason_id = v_reason where id = v_beto;
+  perform set_config('crm.stage_change', 'off', true);
+  if not exists (select 1 from public.meta_event where lead_id = v_beto and event_name = 'FakeLead' and action_source = 'system_generated') then
+    raise exception 'FALHA: FakeLead ao desqualificar';
+  end if;
+
+  -- evento velho expira em vez de ser enviado
+  perform public.enqueue_meta_event(v_beto, 'SubmitScheduled', 'velho-123456', now() - interval '8 days');
+
+  select count(*) into n from public.claim_meta_events(50);
+  if n <> 6 then raise exception 'FALHA: lote esperado 6, veio %', n; end if;
+  if (select status from public.meta_event where event_id = 'velho-123456') <> 'EXPIRED' then raise exception 'FALHA: expiração'; end if;
+  if exists (select 1 from public.claim_meta_events(50)) then raise exception 'FALHA: lote pego duas vezes'; end if;
+
+  select * into r from public.meta_event where event_id = 'ev-1';
+  perform public.complete_meta_event(r.id, false, '{"error":{"message":"x"}}', 'HTTP 500');
+  select * into r from public.meta_event where event_id = 'ev-1';
+  if r.status <> 'PENDING' or r.next_attempt_at <= now() or r.last_error <> 'HTTP 500' then raise exception 'FALHA: nova tentativa'; end if;
+
+  select * into r from public.meta_event where event_id = 'ev-3';
+  perform public.complete_meta_event(r.id, true, '{"events_received":1}');
+  if (select status from public.meta_event where id = r.id) <> 'SENT' then raise exception 'FALHA: enviado'; end if;
+
+  update public.meta_event set attempts = 8 where event_id = 'ev-1';
+  perform public.complete_meta_event((select id from public.meta_event where event_id = 'ev-1'), false, null, 'HTTP 400');
+  if (select status from public.meta_event where event_id = 'ev-1') <> 'FAILED' then raise exception 'FALHA: desistir após 8'; end if;
+end $$;
+
+set role authenticated; select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+do $$ begin
+  perform public.retry_meta_event((select id from public.meta_event where event_id = 'ev-1'));
+  if (select status from public.meta_event where event_id = 'ev-1') <> 'PENDING' then raise exception 'FALHA: reenvio manual'; end if;
+  begin
+    perform public.claim_meta_events(1);
+    raise exception 'FALHA: usuária chamou o envio direto';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+reset role;
+set role authenticated; select set_config('request.jwt.claim.sub','22222222-2222-2222-2222-222222222222',false);
+do $$ begin
+  if exists (select 1 from public.meta_event) then raise exception 'FALHA: intruso vê eventos'; end if;
+end $$;
+reset role;
+
 select 'TODOS_OS_TESTES_OK' as resultado;

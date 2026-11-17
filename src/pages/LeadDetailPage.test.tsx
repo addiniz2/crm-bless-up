@@ -37,6 +37,7 @@ const lead = {
   is_mql: true,
   ad_budget_fit: true,
   ad_budget_range: null,
+  site_form_id: null,
   capture_channel: 'WHATSAPP',
   revenue_band: 'FROM_4K_TO_7K',
   main_goal: null,
