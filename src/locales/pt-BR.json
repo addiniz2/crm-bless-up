@@ -68,7 +68,14 @@
       "ownerAll": "Todos",
       "me": "Eu",
       "startConversationOf": "Iniciar conversa com {{name}}",
-      "registerContactOf": "Registrar contato com {{name}}"
+      "registerContactOf": "Registrar contato com {{name}}",
+      "createdAt": "Entrada",
+      "sortLabel": "Ordenar",
+      "sort": {
+        "OLDEST": "Mais antigos primeiro",
+        "NEWEST": "Mais recentes primeiro",
+        "NEXT_STEP": "Próximo passo mais próximo"
+      }
     },
     "leads": {
       "title": "Leads",

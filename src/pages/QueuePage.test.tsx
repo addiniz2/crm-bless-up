@@ -80,4 +80,19 @@ describe('Minha fila: ações rápidas', () => {
     expect(await screen.findByRole('button', { name: 'Iniciar conversa com Ana Martínez' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Iniciar conversa com Bruno Lima' })).toBeDisabled()
   })
+
+  it('mostra a data de entrada e ordena do mais antigo para o mais recente, com opção de inverter', async () => {
+    window.localStorage.clear()
+    api.listQueue.mockResolvedValue([
+      { ...row, id: 'n', full_name: 'Nova', created_at: '2026-11-16T10:00:00Z' },
+      { ...row, id: 'a', full_name: 'Antiga', created_at: '2026-11-01T10:00:00Z' },
+    ])
+    const user = userEvent.setup()
+    renderPage()
+    const names = async () => (await screen.findAllByRole('link', { name: /^(Nova|Antiga)$/ })).map((link) => link.textContent)
+    expect(await names()).toEqual(['Antiga', 'Nova'])
+    expect(screen.getAllByText('Entrada:')).toHaveLength(2)
+    await user.selectOptions(screen.getByLabelText('Ordenar'), 'NEWEST')
+    expect(await names()).toEqual(['Nova', 'Antiga'])
+  })
 })

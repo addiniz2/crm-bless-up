@@ -16,6 +16,10 @@ import {
   listQueue,
   listUsers,
   rowsForTab,
+  saveSort,
+  savedSort,
+  QUEUE_SORTS,
+  type QueueSort,
   setOwner,
   setQueueStatus,
   type AppUser,
@@ -44,6 +48,7 @@ export function QueuePage() {
   const [saveFailed, setSaveFailed] = useState(false)
   const [tab, setTab] = useState<QueueTab>('NEW')
   const [filters, setFilters] = useState<QueueFilters>(NO_FILTERS)
+  const [sort, setSort] = useState<QueueSort>(() => savedSort())
   const [action, setAction] = useState<{ kind: 'conversation' | 'contact'; row: QueueRow } | null>(null)
 
   const fetchAll = useCallback(
@@ -65,7 +70,7 @@ export function QueuePage() {
 
   const filtered = useMemo(() => applyFilters(rows ?? [], filters), [rows, filters])
   const counts = useMemo(() => countByTab(filtered), [filtered])
-  const visible = useMemo(() => rowsForTab(filtered, tab), [filtered, tab])
+  const visible = useMemo(() => rowsForTab(filtered, tab, sort), [filtered, tab, sort])
   const dateTime = new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
   const date = new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: '2-digit', year: 'numeric' })
 
@@ -111,6 +116,28 @@ export function QueuePage() {
       </div>
 
       <LeadFilters filters={filters} onChange={setFilters} users={users} types={types} />
+
+      <div className="mb-3 flex items-center justify-end gap-2">
+        <label htmlFor="queue-sort" className="text-sm text-muted">
+          {t('pages.queue.sortLabel')}
+        </label>
+        <select
+          id="queue-sort"
+          value={sort}
+          onChange={(e) => {
+            const value = e.target.value as QueueSort
+            setSort(value)
+            saveSort(value)
+          }}
+          className="min-h-11 rounded-lg border border-line bg-card px-3 text-sm text-ink focus:border-action focus:outline-none"
+        >
+          {QUEUE_SORTS.map((code) => (
+            <option key={code} value={code}>
+              {t(`pages.queue.sort.${code}`)}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {loadFailed && (
         <div role="alert" className="mb-4 rounded-lg bg-risk-bg p-3 text-sm text-risk">
@@ -170,7 +197,11 @@ export function QueuePage() {
                 </div>
               </div>
 
-              <dl className="mt-3 grid grid-cols-1 gap-1 text-sm sm:grid-cols-2">
+              <dl className="mt-3 grid grid-cols-1 gap-1 text-sm sm:grid-cols-3">
+                <div className="flex gap-1">
+                  <dt className="text-muted">{t('pages.queue.createdAt')}:</dt>
+                  <dd>{dateTime.format(new Date(row.created_at))}</dd>
+                </div>
                 <div className="flex gap-1">
                   <dt className="text-muted">{t('pages.queue.lastContact')}:</dt>
                   <dd>{row.last_contact_at ? date.format(new Date(row.last_contact_at)) : t('pages.queue.never')}</dd>

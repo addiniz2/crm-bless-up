@@ -77,10 +77,43 @@ export function applyFilters<T extends Pick<QueueRow, 'owner_id' | 'country' | '
   })
 }
 
-export function rowsForTab(rows: QueueRow[], tab: QueueTab): QueueRow[] {
+// Ordem da fila (16/11/2026): padrão por data de entrada, do mais antigo para o mais recente; a usuária pode trocar.
+export const QUEUE_SORTS = ['OLDEST', 'NEWEST', 'NEXT_STEP'] as const
+export type QueueSort = (typeof QUEUE_SORTS)[number]
+
+function time(value: string | null): number {
+  return value ? new Date(value).getTime() : Number.POSITIVE_INFINITY
+}
+
+export function sortRows<T extends Pick<QueueRow, 'created_at' | 'next_step_at'>>(rows: T[], sort: QueueSort): T[] {
+  return [...rows].sort((a, b) => {
+    if (sort === 'NEWEST') return time(b.created_at) - time(a.created_at)
+    if (sort === 'NEXT_STEP') return time(a.next_step_at) - time(b.next_step_at) || time(a.created_at) - time(b.created_at)
+    return time(a.created_at) - time(b.created_at)
+  })
+}
+
+export function rowsForTab(rows: QueueRow[], tab: QueueTab, sort: QueueSort = 'OLDEST'): QueueRow[] {
   const inTab = tab === 'OVERDUE' ? rows.filter((row) => row.is_overdue) : rows.filter((row) => row.queue_status === tab)
-  // Sem responsável primeiro, para as duas verem.
-  return [...inTab].sort((a, b) => Number(a.owner_id !== null) - Number(b.owner_id !== null))
+  return sortRows(inTab, sort)
+}
+
+// Escolha de ordem lembrada neste navegador (sem armazenamento disponível, volta ao padrão)
+const SORT_KEY = 'crm-queue-sort'
+export function savedSort(): QueueSort {
+  try {
+    const value = window.localStorage.getItem(SORT_KEY)
+    return (QUEUE_SORTS as readonly string[]).includes(value ?? '') ? (value as QueueSort) : 'OLDEST'
+  } catch {
+    return 'OLDEST'
+  }
+}
+export function saveSort(sort: QueueSort): void {
+  try {
+    window.localStorage.setItem(SORT_KEY, sort)
+  } catch {
+    // ignora: a escolha vale só nesta visita
+  }
 }
 
 export function countByTab(rows: QueueRow[]): Record<QueueTab, number> {
