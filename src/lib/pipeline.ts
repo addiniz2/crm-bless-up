@@ -1,3 +1,4 @@
+import { cached } from './cache'
 import { supabase } from './supabase'
 import type { ListItem } from './leads'
 
@@ -46,7 +47,11 @@ export async function changeLeadStage(leadId: string, stage: string, reasonId?: 
   return error ? ruleErrorFrom(error, KNOWN_ERRORS, 'UNKNOWN') : null
 }
 
-export async function listReasons(kind: 'DISQUALIFICATION' | 'LOSS'): Promise<ListItem[]> {
+export function listReasons(kind: 'DISQUALIFICATION' | 'LOSS'): Promise<ListItem[]> {
+  return cached(`reason:${kind}`, () => loadReasons(kind))
+}
+
+async function loadReasons(kind: 'DISQUALIFICATION' | 'LOSS'): Promise<ListItem[]> {
   const { data, error } = await client()
     .from('reason')
     .select('id, name')

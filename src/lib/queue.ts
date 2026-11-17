@@ -1,3 +1,4 @@
+import { cached } from './cache'
 import type { Country } from './leads'
 import { supabase } from './supabase'
 
@@ -49,7 +50,11 @@ export async function listQueue(): Promise<QueueRow[]> {
   return data as QueueRow[]
 }
 
-export async function listUsers(): Promise<AppUser[]> {
+export function listUsers(): Promise<AppUser[]> {
+  return cached('app_user', loadUsers)
+}
+
+async function loadUsers(): Promise<AppUser[]> {
   const { data, error } = await client().from('app_user').select('id, full_name').eq('active', true).order('full_name')
   if (error) throw error
   return data

@@ -1,3 +1,4 @@
+import { cached } from './cache'
 import { composeWhatsapp, type PhoneCountry } from './phone'
 import { supabase } from './supabase'
 
@@ -58,8 +59,8 @@ async function activeList(table: 'lead_type' | 'lead_source'): Promise<ListItem[
   return data
 }
 
-export const listLeadTypes = () => activeList('lead_type')
-export const listLeadSources = () => activeList('lead_source')
+export const listLeadTypes = () => cached('lead_type', () => activeList('lead_type'))
+export const listLeadSources = () => cached('lead_source', () => activeList('lead_source'))
 
 export async function findDuplicates(whatsapp: string, email: string): Promise<Duplicate[]> {
   const { data, error } = await client().rpc('find_lead_duplicates', {

@@ -1,3 +1,4 @@
+import { peekSnapshot, saveSnapshot } from '../lib/cache'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -17,9 +18,9 @@ export function LeadsPage() {
   const { t } = useTranslation()
   const location = useLocation()
   const justCreated = Boolean((location.state as { created?: string } | null)?.created)
-  const [rows, setRows] = useState<QueueRow[] | null>(null)
+  const [rows, setRows] = useState<QueueRow[] | null>(() => peekSnapshot<QueueRow[]>('queue'))
   const [users, setUsers] = useState<AppUser[]>([])
-  const [indicators, setIndicators] = useState<Indicators | null>(null)
+  const [indicators, setIndicators] = useState<Indicators | null>(() => peekSnapshot<Indicators>('leadIndicators'))
   const [failed, setFailed] = useState(false)
   const [stageError, setStageError] = useState<StageError | null>(null)
   const [view, setView] = useState<View>('board')
@@ -31,6 +32,8 @@ export function LeadsPage() {
       Promise.all([listQueue(), getIndicators(), listUsers(), listLeadTypes()])
         .then(([leads, numbers, appUsers, leadTypes]) => {
           setRows(leads)
+          saveSnapshot('queue', leads)
+          saveSnapshot('leadIndicators', numbers)
           setTypes(leadTypes)
           setIndicators(numbers)
           setUsers(appUsers)

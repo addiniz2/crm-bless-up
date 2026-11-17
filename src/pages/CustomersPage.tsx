@@ -1,3 +1,4 @@
+import { peekSnapshot, saveSnapshot } from '../lib/cache'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -18,8 +19,8 @@ const STATUS_STYLE: Record<CustomerStatus, string> = {
 // Saúde, renovação, pausa e cancelamento completos entram no BU-21.
 export function CustomersPage() {
   const { t, i18n } = useTranslation()
-  const [rows, setRows] = useState<CustomerRow[] | null>(null)
-  const [indicators, setIndicators] = useState<CustomerIndicators | null>(null)
+  const [rows, setRows] = useState<CustomerRow[] | null>(() => peekSnapshot<CustomerRow[]>('customers'))
+  const [indicators, setIndicators] = useState<CustomerIndicators | null>(() => peekSnapshot<CustomerIndicators>('customerIndicators'))
   const [users, setUsers] = useState<AppUser[]>([])
   const [failed, setFailed] = useState(false)
   const [status, setStatus] = useState<CustomerStatus | ''>('')
@@ -31,6 +32,8 @@ export function CustomersPage() {
       Promise.all([listCustomers(), getCustomerIndicators(), listUsers()])
         .then(([customers, numbers, appUsers]) => {
           setRows(customers)
+          saveSnapshot('customers', customers)
+          saveSnapshot('customerIndicators', numbers)
           setIndicators(numbers)
           setUsers(appUsers)
           setFailed(false)

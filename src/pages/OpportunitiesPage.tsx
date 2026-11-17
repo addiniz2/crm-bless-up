@@ -1,3 +1,4 @@
+import { peekSnapshot, saveSnapshot } from '../lib/cache'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -30,8 +31,8 @@ export function OpportunitiesPage() {
   const { t, i18n } = useTranslation()
   const location = useLocation()
   const highlight = (location.state as { opportunityId?: string } | null)?.opportunityId
-  const [cards, setCards] = useState<OpportunityCard[] | null>(null)
-  const [indicators, setIndicators] = useState<OpportunityIndicators | null>(null)
+  const [cards, setCards] = useState<OpportunityCard[] | null>(() => peekSnapshot<OpportunityCard[]>('opportunities'))
+  const [indicators, setIndicators] = useState<OpportunityIndicators | null>(() => peekSnapshot<OpportunityIndicators>('opportunityIndicators'))
   const [users, setUsers] = useState<AppUser[]>([])
   const [failed, setFailed] = useState(false)
   const [error, setError] = useState<OpportunityError | null>(null)
@@ -42,6 +43,8 @@ export function OpportunitiesPage() {
       Promise.all([listOpportunities(), getOpportunityIndicators(), listUsers()])
         .then(([board, numbers, appUsers]) => {
           setCards(board)
+          saveSnapshot('opportunities', board)
+          saveSnapshot('opportunityIndicators', numbers)
           setIndicators(numbers)
           setUsers(appUsers)
           setFailed(false)

@@ -1,3 +1,4 @@
+import { cached } from './cache'
 import { supabase } from './supabase'
 import { ruleErrorFrom } from './pipeline'
 import { saveErrorFrom, type Country, type SaveError } from './leads'
@@ -191,7 +192,11 @@ export async function updateContact(leadId: string, whatsapp: string, email: str
   return error ? saveErrorFrom(error) : null
 }
 
-export async function listTemplates(): Promise<Template[]> {
+export function listTemplates(): Promise<Template[]> {
+  return cached('message_template', loadTemplates)
+}
+
+async function loadTemplates(): Promise<Template[]> {
   const { data, error } = await client()
     .from('message_template')
     .select('id, name, language, body')

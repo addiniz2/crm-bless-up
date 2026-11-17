@@ -1,3 +1,4 @@
+import { clearAll } from '../lib/cache'
 import { useEffect, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { openedFromRecoveryLink, supabase } from '../lib/supabase'
@@ -33,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     async signOut() {
       await supabase?.auth.signOut()
+      clearAll()
     },
     async requestPasswordReset(email) {
       if (!supabase) return false

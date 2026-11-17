@@ -411,4 +411,11 @@ do $$ begin
 end $$;
 reset role;
 
+-- 20261116000014: regras de acesso avaliadas uma vez por consulta, sem mudar quem acessa
+do $$ begin
+  if exists (select 1 from pg_policies where schemaname = 'public' and (qual = 'is_member()' or with_check = 'is_member()')) then
+    raise exception 'FALHA: regra de acesso sem (select is_member())';
+  end if;
+end $$;
+
 select 'TODOS_OS_TESTES_OK' as resultado;

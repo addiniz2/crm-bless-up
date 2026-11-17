@@ -1,3 +1,4 @@
+import { peekSnapshot, saveSnapshot } from '../lib/cache'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -41,7 +42,7 @@ export function QueuePage() {
   const { t, i18n } = useTranslation()
   const { session } = useAuth()
   const me = session?.user.id ?? ''
-  const [rows, setRows] = useState<QueueRow[] | null>(null)
+  const [rows, setRows] = useState<QueueRow[] | null>(() => peekSnapshot<QueueRow[]>('queue'))
   const [users, setUsers] = useState<AppUser[]>([])
   const [types, setTypes] = useState<ListItem[]>([])
   const [loadFailed, setLoadFailed] = useState(false)
@@ -56,6 +57,7 @@ export function QueuePage() {
       Promise.all([listQueue(), listUsers(), listLeadTypes()])
         .then(([queue, appUsers, leadTypes]) => {
           setRows(queue)
+          saveSnapshot('queue', queue)
           setUsers(appUsers)
           setTypes(leadTypes)
           setLoadFailed(false)

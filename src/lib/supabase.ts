@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { invalidatingFetch } from './cache'
 
 // Só a URL do projeto e a chave publicável ficam no navegador.
 // A proteção dos dados é feita pela RLS no banco; a chave secreta nunca vem para cá.
@@ -19,5 +20,6 @@ export const isSupabaseConfigured = Boolean(url && publishableKey)
 export const supabase: SupabaseClient | null = isSupabaseConfigured
   ? createClient(url!, publishableKey!, {
       auth: { persistSession: true, autoRefreshToken: true },
+      global: { fetch: invalidatingFetch },
     })
   : null
