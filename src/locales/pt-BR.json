@@ -503,7 +503,6 @@
     "continue": "Continuar",
     "sending": "Enviando…",
     "back": "Voltar",
-    "progress": "{{current}} de {{total}}",
     "dialCode": "Código do país",
     "phonePlaceholder": "Digite seu telefone…",
     "instagramPlaceholder": "@suaempresa",
@@ -528,6 +527,8 @@
       "FORM_NOT_FOUND": "Formulário não encontrado ou encerrado.",
       "NETWORK": "Sem conexão. Confira a internet e tente de novo.",
       "UNKNOWN": "Não foi possível enviar agora. Tente de novo em instantes."
-    }
+    },
+    "duration": "Leva menos de 1 minuto",
+    "safe": "Seus dados estão protegidos"
   }
 }

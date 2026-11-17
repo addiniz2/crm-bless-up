@@ -35,3 +35,23 @@ body,
 body {
   @apply bg-page font-sans text-ink antialiased;
 }
+
+/* Formulário do site: entrada suave de cada tela (desligada para quem prefere menos movimento) */
+@keyframes form-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.form-enter {
+  animation: form-enter 0.35s ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .form-enter {
+    animation: none;
+  }
+}
