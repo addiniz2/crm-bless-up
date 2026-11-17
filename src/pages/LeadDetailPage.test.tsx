@@ -8,6 +8,7 @@ import { LeadDetailPage } from './LeadDetailPage'
 const api = vi.hoisted(() => ({
   getLead: vi.fn(),
   getTimeline: vi.fn(),
+  listMetaEvents: vi.fn().mockResolvedValue([]),
   listTemplates: vi.fn(),
   registerActivity: vi.fn(),
   registerConversationStarted: vi.fn(),
@@ -87,6 +88,7 @@ function renderPage() {
 describe('ficha do lead', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    api.listMetaEvents.mockResolvedValue([])
     api.getLead.mockResolvedValue(lead)
     api.getTimeline.mockResolvedValue([
       { type: 'change', id: 'h1', at: '2026-11-15T11:00:00Z', by: 'u1', field: 'stage', from: 'NEW', to: 'CONTACTED' },
@@ -104,6 +106,19 @@ describe('ficha do lead', () => {
     expect(screen.getByText('Etapa: Novo → Abordado')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '@clinica.exemplo' })).toHaveAttribute('href', 'https://instagram.com/clinica.exemplo')
     expect(screen.getByText('Lead qualificado (MQL)').nextSibling).toHaveTextContent('Sim')
+  })
+
+  it('lead do formulário do site: sem [object Object]; mostra o formulário e só respostas extras', async () => {
+    api.getLead.mockResolvedValue({
+      ...lead,
+      site_form_id: 'f1',
+      form_answers: { form: 'espanha', events: { LeadMQL: 'ev-1' }, answers: { full_name: 'Ana', segmento: 'Odonto' } },
+    })
+    renderPage()
+    expect(await screen.findByText('Formulário do site')).toBeInTheDocument()
+    expect(screen.getByText('espanha')).toBeInTheDocument()
+    expect(screen.getByText('Odonto')).toBeInTheDocument()
+    expect(screen.queryByText('[object Object]')).not.toBeInTheDocument()
   })
 
   it('registrar contato envia ao banco e mostra a regra que ele devolve', async () => {

@@ -24,6 +24,8 @@ type Panel = 'conversation' | 'contact' | 'disqualify' | 'editContact' | 'conver
 const inputClass =
   'mt-1 block min-h-11 w-full rounded-lg border border-line bg-card px-3 text-base text-ink focus:border-action focus:outline-none'
 
+const SITE_FORM_MAPPED = new Set(['full_name', 'instagram_handle', 'whatsapp', 'revenue_band', 'ad_budget_fit', 'ad_budget_range'])
+
 function Info({ label, children }: { label: string; children: ReactNode }) {
   if (children === null || children === undefined || children === '') return null
   return (
@@ -101,7 +103,13 @@ export function LeadDetailPage() {
   ]
     .filter(Boolean)
     .join(' · ')
-  const answers = lead.form_answers ? Object.entries(lead.form_answers) : []
+  // Formulário do site: respostas ficam em form_answers.answers; as já mostradas nos campos do lead não se repetem.
+  const siteForm = lead.site_form_id ? (lead.form_answers as { form?: string; answers?: Record<string, unknown> } | null) : null
+  const answers = siteForm
+    ? Object.entries(siteForm.answers ?? {}).filter(([key]) => !SITE_FORM_MAPPED.has(key))
+    : lead.form_answers
+      ? Object.entries(lead.form_answers)
+      : []
   const actionClass = 'min-h-11 rounded-lg px-4 text-sm font-medium disabled:opacity-50'
 
   return (
@@ -259,6 +267,7 @@ export function LeadDetailPage() {
               <Info label={t('leadDetail.fields.utm')}>{utm}</Info>
               <Info label={t('leadDetail.fields.clickIds')}>{clickIds}</Info>
               <Info label={t('leadDetail.fields.pageUrl')}>{lead.page_url}</Info>
+              <Info label={t('leadDetail.fields.siteForm')}>{siteForm?.form}</Info>
             </dl>
           </div>
 
@@ -286,7 +295,7 @@ export function LeadDetailPage() {
               <dl className="grid gap-3">
                 {answers.map(([question, answer]) => (
                   <Info key={question} label={question}>
-                    {Array.isArray(answer) ? answer.join(', ') : String(answer)}
+                    {Array.isArray(answer) ? answer.join(', ') : typeof answer === 'object' ? JSON.stringify(answer) : String(answer)}
                   </Info>
                 ))}
               </dl>
