@@ -59,9 +59,8 @@ export async function buildServerEvent(event: ClaimedEvent): Promise<Record<stri
     user_data: userData,
   }
   if (event.action_source === 'website' && event.page_url) serverEvent.event_source_url = event.page_url
-  if (event.action_source === 'system_generated') {
-    serverEvent.custom_data = { event_source: 'crm', lead_event_source: 'CRM Bless Up' }
-  }
+  // Eventos decididos no CRM (hoje só o Fake Lead) levam a origem, para leitura nos relatórios da Meta
+  if (event.event_name === 'FakeLead') serverEvent.custom_data = { lead_event_source: 'CRM Bless Up' }
   return serverEvent
 }
 

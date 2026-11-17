@@ -368,7 +368,7 @@ begin
   perform set_config('crm.stage_change', 'on', true);
   update public.lead set stage = 'DISQUALIFIED', disqualification_reason_id = v_reason where id = v_beto;
   perform set_config('crm.stage_change', 'off', true);
-  if not exists (select 1 from public.meta_event where lead_id = v_beto and event_name = 'FakeLead' and action_source = 'system_generated') then
+  if not exists (select 1 from public.meta_event where lead_id = v_beto and event_name = 'FakeLead' and action_source = 'website') then
     raise exception 'FALHA: FakeLead ao desqualificar';
   end if;
 

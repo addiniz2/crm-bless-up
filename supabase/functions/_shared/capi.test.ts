@@ -50,10 +50,11 @@ describe('API de Conversões: montagem do evento', () => {
     expect(JSON.stringify(event)).not.toContain('351912345678')
   })
 
-  it('Fake Lead vem do CRM (system_generated), sem URL de página', async () => {
-    const event = await buildServerEvent({ ...base, event_name: 'FakeLead', action_source: 'system_generated' })
-    expect(event.event_source_url).toBeUndefined()
-    expect(event.custom_data).toEqual({ event_source: 'crm', lead_event_source: 'CRM Bless Up' })
+  it('Fake Lead é evento do site (aparece em Eventos de teste), com a origem CRM nos dados', async () => {
+    const event = await buildServerEvent({ ...base, event_name: 'FakeLead' })
+    expect(event.action_source).toBe('website')
+    expect(event.event_source_url).toBe('https://forms.blessupmkt.com/f/espanha')
+    expect(event.custom_data).toEqual({ lead_event_source: 'CRM Bless Up' })
   })
 
   it('só o cron com o segredo certo dispara o envio', () => {
