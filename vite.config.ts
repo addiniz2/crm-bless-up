@@ -5,12 +5,6 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  // Duas páginas: o CRM (index.html) e o formulário público do site (form.html, servido em /f/<slug>)
-  build: {
-    rollupOptions: {
-      input: { main: 'index.html', form: 'form.html' },
-    },
-  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
