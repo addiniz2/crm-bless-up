@@ -42,6 +42,21 @@ describe('Minha fila', () => {
     expect(rowsForTab(rows, 'OVERDUE').map((r) => r.full_name)).toEqual(['Caio', 'Duda'])
   })
 
+  it('sem responsável aparece primeiro', () => {
+    expect(rowsForTab(rows, 'NEW').map((r) => r.full_name)).toEqual(['Bia', 'Ana'])
+  })
+
+  it('sem responsável primeiro e, dentro de cada grupo, por data de entrada', () => {
+    const list = [
+      row({ full_name: 'Minha nova', owner_id: 'me', created_at: '2026-11-16T10:00:00Z' }),
+      row({ full_name: 'Livre nova', owner_id: null, created_at: '2026-11-15T10:00:00Z' }),
+      row({ full_name: 'Minha antiga', owner_id: 'me', created_at: '2026-11-01T10:00:00Z' }),
+      row({ full_name: 'Livre antiga', owner_id: null, created_at: '2026-11-02T10:00:00Z' }),
+    ]
+    expect(rowsForTab(list, 'NEW').map((r) => r.full_name)).toEqual(['Livre antiga', 'Livre nova', 'Minha antiga', 'Minha nova'])
+    expect(rowsForTab(list, 'NEW', 'NEWEST').map((r) => r.full_name)).toEqual(['Livre nova', 'Livre antiga', 'Minha nova', 'Minha antiga'])
+  })
+
   it('ordena por data de entrada: padrão do mais antigo para o mais recente; pode inverter ou usar o próximo passo', () => {
     const list = [
       row({ full_name: 'Nova', created_at: '2026-11-16T10:00:00Z', next_step_at: '2026-11-17T09:00:00Z' }),

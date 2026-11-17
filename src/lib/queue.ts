@@ -77,7 +77,8 @@ export function applyFilters<T extends Pick<QueueRow, 'owner_id' | 'country' | '
   })
 }
 
-// Ordem da fila (16/11/2026): padrão por data de entrada, do mais antigo para o mais recente; a usuária pode trocar.
+// Ordem da fila (16/11/2026): sem responsável primeiro; dentro de cada grupo, por data de entrada
+// (padrão do mais antigo para o mais recente), e a usuária pode trocar.
 export const QUEUE_SORTS = ['OLDEST', 'NEWEST', 'NEXT_STEP'] as const
 export type QueueSort = (typeof QUEUE_SORTS)[number]
 
@@ -93,9 +94,11 @@ export function sortRows<T extends Pick<QueueRow, 'created_at' | 'next_step_at'>
   })
 }
 
+// Sem responsável sempre primeiro (para as duas verem); dentro de cada grupo, a ordem escolhida.
 export function rowsForTab(rows: QueueRow[], tab: QueueTab, sort: QueueSort = 'OLDEST'): QueueRow[] {
   const inTab = tab === 'OVERDUE' ? rows.filter((row) => row.is_overdue) : rows.filter((row) => row.queue_status === tab)
-  return sortRows(inTab, sort)
+  const sorted = sortRows(inTab, sort)
+  return [...sorted.filter((row) => row.owner_id === null), ...sorted.filter((row) => row.owner_id !== null)]
 }
 
 // Escolha de ordem lembrada neste navegador (sem armazenamento disponível, volta ao padrão)
