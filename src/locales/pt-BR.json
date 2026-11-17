@@ -179,7 +179,15 @@
       "BR": "Brasil",
       "PT": "Portugal",
       "IE": "Irlanda",
-      "GB": "Reino Unido"
+      "GB": "Reino Unido",
+      "FR": "França",
+      "IT": "Itália",
+      "DE": "Alemanha",
+      "CH": "Suíça",
+      "NL": "Holanda",
+      "BE": "Bélgica",
+      "LU": "Luxemburgo",
+      "AT": "Áustria"
     },
     "channel": {
       "WEBSITE": "Site",
@@ -214,17 +222,19 @@
     },
     "revenueBand": {
       "BRL": {
-        "UP_TO_5K": "Até R$ 5.000",
-        "FROM_5K_TO_10K": "De R$ 5.000 a R$ 10.000",
-        "FROM_10K_TO_20K": "De R$ 10.000 a R$ 20.000",
-        "ABOVE_20K": "Acima de R$ 20.000",
+        "UP_TO_4K": "Até R$ 25.000",
+        "FROM_4K_TO_7K": "De R$ 25.000 a R$ 43.000",
+        "FROM_7K_TO_10K": "De R$ 43.000 a R$ 62.000",
+        "FROM_10K_TO_15K": "De R$ 62.000 a R$ 93.000",
+        "ABOVE_15K": "Acima de R$ 93.000",
         "NOT_INFORMED": "Não informado"
       },
       "EUR": {
-        "UP_TO_5K": "Até 5.000 €",
-        "FROM_5K_TO_10K": "De 5.000 € a 10.000 €",
-        "FROM_10K_TO_20K": "De 10.000 € a 20.000 €",
-        "ABOVE_20K": "Acima de 20.000 €",
+        "UP_TO_4K": "Até 4.000 €",
+        "FROM_4K_TO_7K": "De 4.000 € a 7.000 €",
+        "FROM_7K_TO_10K": "De 7.000 € a 10.000 €",
+        "FROM_10K_TO_15K": "De 10.000 € a 15.000 €",
+        "ABOVE_15K": "Acima de 15.000 €",
         "NOT_INFORMED": "Não informado"
       }
     },
@@ -264,6 +274,18 @@
       "PAUSED": "Pausado",
       "CANCELLATION_NOTICE": "Aviso de cancelamento",
       "CANCELLED": "Cancelado"
+    },
+    "adBudgetRange": {
+      "BRL": {
+        "BUDGET_HIGH": "Entre R$ 1.200 e R$ 1.850/mês",
+        "BUDGET_MID": "Entre R$ 900 e R$ 1.200/mês",
+        "BUDGET_LOW": "Menos de R$ 900/mês"
+      },
+      "EUR": {
+        "BUDGET_HIGH": "Entre 200 € e 300 €/mês",
+        "BUDGET_MID": "Entre 150 € e 200 €/mês",
+        "BUDGET_LOW": "Menos de 150 €/mês"
+      }
     }
   },
   "common": {
@@ -355,7 +377,9 @@
       "metaPlatform": "Plataforma",
       "metaOrganic": "Orgânico",
       "instagram": "Instagram",
-      "mql": "Lead qualificado (MQL)"
+      "mql": "Lead qualificado (MQL)",
+      "adBudgetFit": "Investimento mínimo cabe no orçamento",
+      "adBudgetRange": "Quanto investiria"
     },
     "yes": "Sim",
     "no": "Não",
@@ -470,5 +494,40 @@
     "converted": "Lead convertido em conta e oportunidade.",
     "opportunityStageChanged": "Etapa da oportunidade alterada.",
     "opportunityLost": "Oportunidade marcada como perdida."
+  },
+  "form": {
+    "brand": "bless up",
+    "loading": "Carregando…",
+    "notFound": "Formulário não encontrado ou encerrado.",
+    "start": "Começar",
+    "continue": "Continuar",
+    "sending": "Enviando…",
+    "back": "Voltar",
+    "progress": "{{current}} de {{total}}",
+    "dialCode": "Código do país",
+    "phonePlaceholder": "Digite seu telefone…",
+    "instagramPlaceholder": "@suaempresa",
+    "textPlaceholder": "Digite sua resposta…",
+    "consent": {
+      "title": "Cookies",
+      "text": "Usamos cookies da Meta para medir o resultado dos nossos anúncios. Você escolhe se aceita.",
+      "policy": "Política de privacidade",
+      "accept": "Aceitar",
+      "reject": "Recusar"
+    },
+    "errors": {
+      "REQUIRED": "Preencha todos os campos obrigatórios.",
+      "NAME_INVALID": "Confira o seu nome.",
+      "INSTAGRAM_INVALID": "Informe o @ do Instagram, por exemplo @suaempresa.",
+      "WHATSAPP_INVALID": "Telefone inválido para o código do país escolhido. Confira os dígitos.",
+      "ANSWER_MISSING": "Responda a pergunta para continuar.",
+      "ANSWER_INVALID": "Escolha uma das opções.",
+      "SUBMISSION_NOT_FOUND": "Não encontramos o seu cadastro. Recarregue a página e tente de novo.",
+      "SUBMISSION_ALREADY_COMPLETED": "Suas respostas já foram enviadas. Obrigado!",
+      "SUBMISSION_EXPIRED": "O tempo para concluir expirou. Recarregue a página e tente de novo.",
+      "FORM_NOT_FOUND": "Formulário não encontrado ou encerrado.",
+      "NETWORK": "Sem conexão. Confira a internet e tente de novo.",
+      "UNKNOWN": "Não foi possível enviar agora. Tente de novo em instantes."
+    }
   }
 }

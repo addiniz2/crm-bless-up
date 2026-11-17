@@ -89,7 +89,7 @@ do $$ begin
   exception when check_violation then null; end;
 end $$;
 insert into public.lead (full_name, whatsapp, country, lead_type_id, revenue_band, meta_is_organic, meta_raw)
-values ('Faixa ok', '351912345678', 'ES', 'aaaaaaaa-0000-0000-0000-000000000001', 'FROM_5K_TO_10K', false, '{"id":"1"}');
+values ('Faixa ok', '351912345678', 'ES', 'aaaaaaaa-0000-0000-0000-000000000001', 'FROM_4K_TO_7K', false, '{"id":"1"}');
 select count(*) as tipos_iniciais from public.lead_type where name <> 'Empresa';
 
 -- BU-08: fila
@@ -212,11 +212,11 @@ do $$ declare v uuid; v2 uuid; r public.lead%rowtype; begin
       "campaign_name":"Campanha Odonto","platform":"ig","is_organic":false,
       "custom_disclaimer_responses":[{"checkbox_key":"optional_1","is_checked":"1"}],
       "field_data":[{"name":"full_name","values":["Marta López"]},{"name":"phone_number","values":["+34 600 999 888"]},
-                    {"name":"email","values":["Marta@Example.es"]},{"name":"faturamento_mensal","values":["from_5k_to_10k"]},
+                    {"name":"email","values":["Marta@Example.es"]},{"name":"faturamento_mensal","values":["from_4k_to_7k"]},
                     {"name":"qual_servico","values":["tráfego"]}]}'::jsonb,
     '{"leadgen_id":"9001","page_id":"P1","form_id":"F1","adgroup_id":"G1","ad_id":"A1","created_time":1794780000}'::jsonb);
   select * into r from public.lead where id = v;
-  if r.whatsapp <> '34600999888' or r.country <> 'ES' or r.email <> 'marta@example.es' or r.revenue_band <> 'FROM_5K_TO_10K'
+  if r.whatsapp <> '34600999888' or r.country <> 'ES' or r.email <> 'marta@example.es' or r.revenue_band <> 'FROM_4K_TO_7K'
      or r.capture_channel <> 'INSTANT_FORM' or r.meta_adset_id <> 'G1' or r.meta_page_id <> 'P1' or r.meta_platform <> 'ig'
      or r.meta_is_organic is distinct from false or r.form_answers -> 'qual_servico' ->> 0 <> 'tráfego' or r.meta_raw is null then
     raise exception 'FALHA: mapeamento da Meta %', row_to_json(r); end if;
@@ -265,5 +265,79 @@ do $$ begin
     raise exception 'FALHA: motivos do histórico';
   end if;
 end $$;
+
+-- 20261116000011: formulários do site
+do $$
+declare
+  v jsonb;
+  v_sub uuid;
+  r public.lead%rowtype;
+begin
+  if public.site_form_public('ESPANHA') ->> 'currency' <> 'EUR' then raise exception 'FALHA: formulário público'; end if;
+  if public.site_form_public('nao-existe') is not null then raise exception 'FALHA: formulário inexistente'; end if;
+
+  begin
+    perform public.site_form_start('espanha', '{"full_name":"Ana","instagram_handle":"ana@gmail.com","whatsapp":"34600111222"}');
+    raise exception 'FALHA: Instagram inválido aceito';
+  exception when raise_exception then
+    if sqlerrm <> 'INSTAGRAM_INVALID' then raise; end if;
+  end;
+  begin
+    perform public.site_form_start('espanha', '{"full_name":"Ana","instagram_handle":"ana.loja","whatsapp":"3460011"}');
+    raise exception 'FALHA: telefone curto aceito';
+  exception when raise_exception then
+    if sqlerrm <> 'WHATSAPP_INVALID' then raise; end if;
+  end;
+
+  v := public.site_form_start('espanha',
+    '{"full_name":"Ana Form","instagram_handle":"https://instagram.com/Ana.Loja/","whatsapp":"+351 912 345 678"}',
+    '{"utm_source":"ig","utm_medium":"paid","fbp":"fb.1.1.1","cookie_consent":true,"events":{"FirstInteraction":"ev-1"}}');
+  v_sub := (v ->> 'submissionId')::uuid;
+  select * into r from public.lead where form_submission_id = v_sub;
+  if r.country <> 'PT' or r.instagram_handle <> 'ana.loja' or r.capture_channel <> 'WEBSITE' or r.needs_completion
+     or r.lead_source_id <> (select id from public.lead_source where name = 'Meta Ads')
+     or r.form_answers -> 'events' ->> 'FirstInteraction' <> 'ev-1' then
+    raise exception 'FALHA: lead do formulário (início) %', row_to_json(r);
+  end if;
+
+  begin
+    perform public.site_form_finish(v_sub, '{"revenue_band":"FROM_4K_TO_7K","ad_budget_fit":"NO"}');
+    raise exception 'FALHA: faixa de investimento exigida para quem respondeu Não';
+  exception when raise_exception then
+    if sqlerrm <> 'ANSWER_MISSING' then raise; end if;
+  end;
+  begin
+    perform public.site_form_finish(v_sub, '{"revenue_band":"MUITO","ad_budget_fit":"YES"}');
+    raise exception 'FALHA: opção inexistente aceita';
+  exception when raise_exception then
+    if sqlerrm <> 'ANSWER_INVALID' then raise; end if;
+  end;
+
+  v := public.site_form_finish(v_sub, '{"revenue_band":"UP_TO_4K","ad_budget_fit":"YES"}', '{"LeadMQL":"ev-3"}');
+  select * into r from public.lead where form_submission_id = v_sub;
+  if (v ->> 'isMql')::boolean is not true or r.is_mql is not true or r.revenue_band <> 'UP_TO_4K'
+     or r.ad_budget_fit is not true or r.form_completed_at is null or r.form_answers -> 'events' ->> 'LeadMQL' <> 'ev-3' then
+    raise exception 'FALHA: MQL com faturamento baixo e Sim ao investimento';
+  end if;
+  begin
+    perform public.site_form_finish(v_sub, '{"revenue_band":"UP_TO_4K","ad_budget_fit":"YES"}');
+    raise exception 'FALHA: envio repetido aceito';
+  exception when raise_exception then
+    if sqlerrm <> 'SUBMISSION_ALREADY_COMPLETED' then raise; end if;
+  end;
+
+  v := public.site_form_start('brasil', '{"full_name":"Beto","instagram_handle":"@beto","whatsapp":"5511987654321"}');
+  v := public.site_form_finish((v ->> 'submissionId')::uuid,
+    '{"revenue_band":"ABOVE_15K","ad_budget_fit":"NO","ad_budget_range":"BUDGET_HIGH"}');
+  if (v ->> 'isMql')::boolean is not false then raise exception 'FALHA: Não ao investimento não é MQL'; end if;
+end $$;
+
+set role anon;
+do $$ begin
+  perform public.site_form_start('espanha', '{}');
+  raise exception 'FALHA: visitante chamou a função do formulário direto';
+exception when insufficient_privilege then null;
+end $$;
+reset role;
 
 select 'TODOS_OS_TESTES_OK' as resultado;

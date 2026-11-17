@@ -5,7 +5,7 @@ import { supabase } from './supabase'
 // Países mais comuns no cadastro; o banco aceita qualquer código ISO de 2 letras (16/11/2026).
 export const COUNTRIES = ['ES', 'BR', 'PT', 'IE', 'GB'] as const
 export const MANUAL_CHANNELS = ['WHATSAPP', 'INSTAGRAM_DIRECT', 'MESSENGER', 'PHONE_CALL', 'MANUAL'] as const
-export const REVENUE_BANDS = ['UP_TO_5K', 'FROM_5K_TO_10K', 'FROM_10K_TO_20K', 'ABOVE_20K', 'NOT_INFORMED'] as const
+export const REVENUE_BANDS = ['UP_TO_4K', 'FROM_4K_TO_7K', 'FROM_7K_TO_10K', 'FROM_10K_TO_15K', 'ABOVE_15K', 'NOT_INFORMED'] as const
 export const MAIN_GOALS = ['MORE_CUSTOMERS', 'BRAND', 'ORGANIZE_MARKETING', 'TRAIN_TEAM'] as const
 
 export type Country = (typeof COUNTRIES)[number]

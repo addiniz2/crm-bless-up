@@ -237,6 +237,12 @@ export function LeadDetailPage() {
               <Info label={t('leadDetail.fields.revenueBand')}>
                 {lead.revenue_band && currency && t(`codes.revenueBand.${currency}.${lead.revenue_band}`)}
               </Info>
+              <Info label={t('leadDetail.fields.adBudgetFit')}>
+                {lead.ad_budget_fit == null ? null : t(`leadDetail.mql.${lead.ad_budget_fit ? 'yes' : 'no'}`)}
+              </Info>
+              <Info label={t('leadDetail.fields.adBudgetRange')}>
+                {lead.ad_budget_range && currency && t(`codes.adBudgetRange.${currency}.${lead.ad_budget_range}`)}
+              </Info>
               <Info label={t('leadDetail.fields.mainGoal')}>{lead.main_goal && t(`codes.mainGoal.${lead.main_goal}`)}</Info>
               <Info label={t('leadDetail.fields.howFound')}>{lead.how_found}</Info>
               <Info label={t('leadDetail.fields.notes')}>{lead.notes}</Info>

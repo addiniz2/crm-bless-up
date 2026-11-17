@@ -428,3 +428,7 @@ enabled = true
 # Webhook da Meta: a Meta não envia o JWT do Supabase; a função valida a assinatura X-Hub-Signature-256.
 [functions.meta-leadgen-webhook]
 verify_jwt = false
+
+# Formulário público do site: visitante não tem login; a função valida origem, anti-robô e regras no banco.
+[functions.site-form]
+verify_jwt = false

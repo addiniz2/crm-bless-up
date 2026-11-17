@@ -35,8 +35,10 @@ const lead = {
   country: 'ES',
   instagram_handle: 'clinica.exemplo',
   is_mql: true,
+  ad_budget_fit: true,
+  ad_budget_range: null,
   capture_channel: 'WHATSAPP',
-  revenue_band: 'FROM_5K_TO_10K',
+  revenue_band: 'FROM_4K_TO_7K',
   main_goal: null,
   how_found: null,
   notes: null,
@@ -97,7 +99,7 @@ describe('ficha do lead', () => {
     renderPage()
     expect(await screen.findByRole('heading', { name: 'Ana Martínez' })).toBeInTheDocument()
     expect(screen.getByText('+34 600 111 222')).toBeInTheDocument()
-    expect(screen.getByText('De 5.000 € a 10.000 €')).toBeInTheDocument()
+    expect(screen.getByText('De 4.000 € a 7.000 €')).toBeInTheDocument()
     expect(screen.getByText('Etapa: Novo → Abordado')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '@clinica.exemplo' })).toHaveAttribute('href', 'https://instagram.com/clinica.exemplo')
     expect(screen.getByText('Lead qualificado (MQL)').nextSibling).toHaveTextContent('Sim')

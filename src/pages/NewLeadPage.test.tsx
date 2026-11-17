@@ -80,8 +80,8 @@ describe('cadastro de lead', () => {
 
     await screen.findByText(/Passo 2 de 3/)
     await user.selectOptions(screen.getByLabelText('Tipo de lead'), 'type-1')
-    expect(screen.getByRole('option', { name: 'Até 5.000 €' })).toBeInTheDocument()
-    await user.selectOptions(screen.getByLabelText(/Faturamento mensal/), 'FROM_5K_TO_10K')
+    expect(screen.getByRole('option', { name: 'Até 4.000 €' })).toBeInTheDocument()
+    await user.selectOptions(screen.getByLabelText(/Faturamento mensal/), 'FROM_4K_TO_7K')
     await user.click(screen.getByRole('button', { name: 'Continuar' }))
 
     await user.selectOptions(screen.getByLabelText('Canal de captação'), 'PHONE_CALL')
@@ -94,7 +94,7 @@ describe('cadastro de lead', () => {
         phoneCountry: 'ES',
         phoneNational: '600 111 222',
         leadTypeId: 'type-1',
-        revenueBand: 'FROM_5K_TO_10K',
+        revenueBand: 'FROM_4K_TO_7K',
         captureChannel: 'PHONE_CALL',
         assignToMe: true,
       }),

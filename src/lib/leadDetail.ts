@@ -20,6 +20,8 @@ export type LeadDetail = {
   country: Country | null
   instagram_handle: string | null
   is_mql: boolean | null
+  ad_budget_fit: boolean | null
+  ad_budget_range: string | null
   capture_channel: string
   revenue_band: string | null
   main_goal: string | null
