@@ -15,6 +15,7 @@ export type QueueRow = {
   whatsapp: string | null
   stage: string
   queue_status: QueueStatus
+  is_important: boolean
   owner_id: string | null
   next_step: string | null
   next_step_at: string | null
@@ -33,7 +34,7 @@ export type AppUser = { id: string; full_name: string }
 
 // 'ALL' = todos, 'NONE' = sem responsável, ou o id da usuária.
 export type OwnerFilter = 'ALL' | 'NONE' | (string & {})
-export type QueueFilters = { owner: OwnerFilter; country: Country | ''; leadTypeId: string }
+export type QueueFilters = { owner: OwnerFilter; country: Country | ''; leadTypeId: string; importantOnly: boolean }
 
 function client() {
   if (!supabase) throw new Error('SUPABASE_NOT_CONFIGURED')
@@ -66,14 +67,20 @@ export async function setQueueStatus(leadId: string, status: QueueStatus) {
   if (error) throw error
 }
 
+export async function setLeadImportant(leadId: string, value: boolean) {
+  const { error } = await client().from('lead').update({ is_important: value }).eq('id', leadId)
+  if (error) throw error
+}
+
 export async function setOwner(leadId: string, ownerId: string | null) {
   const { error } = await client().from('lead').update({ owner_id: ownerId }).eq('id', leadId)
   if (error) throw error
 }
 
 // Filtragem de apresentação sobre o que o banco já calculou (atrasado, sem próximo passo).
-export function applyFilters<T extends Pick<QueueRow, 'owner_id' | 'country' | 'lead_type_id'>>(rows: T[], filters: QueueFilters): T[] {
+export function applyFilters<T extends Pick<QueueRow, 'owner_id' | 'country' | 'lead_type_id' | 'is_important'>>(rows: T[], filters: QueueFilters): T[] {
   return rows.filter((row) => {
+    if (filters.importantOnly && !row.is_important) return false
     if (filters.owner === 'NONE' && row.owner_id !== null) return false
     if (filters.owner !== 'ALL' && filters.owner !== 'NONE' && row.owner_id !== filters.owner) return false
     if (filters.country && row.country !== filters.country) return false
@@ -133,4 +140,4 @@ export function countByTab(rows: QueueRow[]): Record<QueueTab, number> {
   return counts
 }
 
-export const NO_FILTERS: QueueFilters = { owner: 'ALL', country: '', leadTypeId: '' }
+export const NO_FILTERS: QueueFilters = { owner: 'ALL', country: '', leadTypeId: '', importantOnly: false }

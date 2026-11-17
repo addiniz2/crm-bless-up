@@ -12,8 +12,9 @@ const api = vi.hoisted(() => ({
   listLeadTypes: vi.fn(),
   registerActivity: vi.fn(),
   listTemplates: vi.fn(),
+  setLeadImportant: vi.fn(),
 }))
-vi.mock('../lib/queue', async (original) => ({ ...(await original<typeof import('../lib/queue')>()), listQueue: api.listQueue, listUsers: api.listUsers }))
+vi.mock('../lib/queue', async (original) => ({ ...(await original<typeof import('../lib/queue')>()), listQueue: api.listQueue, listUsers: api.listUsers, setLeadImportant: api.setLeadImportant }))
 vi.mock('../lib/leads', async (original) => ({ ...(await original<typeof import('../lib/leads')>()), listLeadTypes: api.listLeadTypes }))
 vi.mock('../lib/leadDetail', async (original) => ({
   ...(await original<typeof import('../lib/leadDetail')>()),
@@ -27,6 +28,7 @@ const row: QueueRow = {
   company_name: 'Café Ana',
   country: 'ES',
   whatsapp: '34600111222',
+  is_important: false,
   stage: 'NEW',
   queue_status: 'NEW',
   owner_id: null,
@@ -94,5 +96,27 @@ describe('Minha fila: ações rápidas', () => {
     expect(screen.getAllByText('Entrada:')).toHaveLength(2)
     await user.selectOptions(screen.getByLabelText('Ordenar'), 'NEWEST')
     expect(await names()).toEqual(['Nova', 'Antiga'])
+  })
+
+  it('marca um lead como importante pela estrela e destaca o cartão', async () => {
+    api.listQueue.mockResolvedValue([{ ...row, id: 'x1', full_name: 'Lead Estrela' }])
+    api.setLeadImportant.mockResolvedValue(undefined)
+    const user = userEvent.setup()
+    renderPage()
+    const star = await screen.findByRole('button', { name: 'Marcar Lead Estrela como importante' })
+    expect(star).toHaveAttribute('aria-pressed', 'false')
+    await user.click(star)
+    expect(api.setLeadImportant).toHaveBeenCalledWith('x1', true)
+    expect(screen.getByRole('button', { name: 'Tirar a marca de importante de Lead Estrela' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('se a gravação falhar, a estrela volta ao estado anterior', async () => {
+    api.listQueue.mockResolvedValue([{ ...row, id: 'x2', full_name: 'Lead Falha' }])
+    api.setLeadImportant.mockRejectedValue(new Error('rede'))
+    const user = userEvent.setup()
+    renderPage()
+    await user.click(await screen.findByRole('button', { name: 'Marcar Lead Falha como importante' }))
+    expect(api.setLeadImportant).toHaveBeenCalledWith('x2', true)
+    expect(await screen.findByRole('button', { name: 'Marcar Lead Falha como importante' })).toHaveAttribute('aria-pressed', 'false')
   })
 })

@@ -6,16 +6,17 @@ import { BOARD_STAGES, changeLeadStage, getIndicators, type BoardStage, type Ind
 import { LeadFilters } from '../components/LeadFilters'
 import { Loading } from '../components/Loading'
 import { StageBoard } from '../components/StageBoard'
+import { ImportantBadge, ImportantToggle } from '../components/ImportantToggle'
 import { useToast } from '../components/Toast'
 import { listLeadTypes, type ListItem } from '../lib/leads'
-import { NO_FILTERS, applyFilters, listQueue, listUsers, type AppUser, type QueueFilters, type QueueRow } from '../lib/queue'
+import { NO_FILTERS, applyFilters, listQueue, listUsers, setLeadImportant, type AppUser, type QueueFilters, type QueueRow } from '../lib/queue'
 
 type View = 'board' | 'list'
 
 // Leads (BU-09): indicadores, kanban por etapa com arrastar (computador) e seletor de etapa (celular e teclado).
 // A mudança de etapa passa pela função do banco, que grava o histórico.
 export function LeadsPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const location = useLocation()
   const justCreated = Boolean((location.state as { created?: string } | null)?.created)
   const [rows, setRows] = useState<QueueRow[] | null>(() => peekSnapshot<QueueRow[]>('queue'))
@@ -48,6 +49,19 @@ export function LeadsPage() {
   }, [fetchAll])
 
   const toast = useToast()
+  const shortDate = new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: '2-digit' })
+
+  // Marcador Importante: muda na tela na hora e grava; se falhar, volta e avisa
+  async function toggleImportant(id: string, value: boolean) {
+    const flip = (list: QueueRow[] | null) => list?.map((row) => (row.id === id ? { ...row, is_important: value } : row)) ?? list
+    setRows(flip)
+    try {
+      await setLeadImportant(id, value)
+    } catch {
+      setRows((list) => list?.map((row) => (row.id === id ? { ...row, is_important: !value } : row)) ?? list)
+      toast.show(t('important.error'))
+    }
+  }
 
   async function move(leadId: string, stage: BoardStage) {
     const current = rows?.find((row) => row.id === leadId)
@@ -135,11 +149,15 @@ export function LeadsPage() {
           stageOf={(row) => row.stage}
           stageLabel={(stage) => t(`codes.leadStage.${stage}`)}
           onMove={(row, stage) => void move(row.id, stage as BoardStage)}
+          cardClassName={(row) => (row.is_important ? 'border-l-4 border-l-warning' : '')}
           renderCard={(row) => (
-            <>
-              <Link to={`/leads/${row.id}`} className="block truncate text-sm font-medium text-ink hover:text-action">
-                {row.full_name}
-              </Link>
+            <div>
+              <div className="flex items-start gap-1">
+                <Link to={`/leads/${row.id}`} className="block min-w-0 flex-1 truncate text-sm font-medium text-ink hover:text-action">
+                  {row.full_name}
+                </Link>
+                <ImportantToggle value={row.is_important} name={row.full_name} onChange={(value) => void toggleImportant(row.id, value)} />
+              </div>
               <p className="truncate text-xs text-muted">
                 {[row.company_name, row.lead_type_name, row.country && t(`codes.country.${row.country}`)].filter(Boolean).join(' · ')}
               </p>
@@ -147,6 +165,7 @@ export function LeadsPage() {
                 {ownerName(row.owner_id) ?? t('pages.queue.unassigned')}
                 {row.is_overdue && <span className="ml-1 text-risk">· {t('pages.queue.overdue')}</span>}
               </p>
+              <p className="truncate text-xs text-muted">{t('pages.leads.createdAt', { date: shortDate.format(new Date(row.created_at)) })}</p>
               <select
                 aria-label={t('pages.leads.moveTo', { name: row.full_name })}
                 value={row.stage}
@@ -159,7 +178,7 @@ export function LeadsPage() {
                   </option>
                 ))}
               </select>
-            </>
+            </div>
           )}
         />
       )}
@@ -170,7 +189,10 @@ export function LeadsPage() {
             <li key={row.id}>
               <Link to={`/leads/${row.id}`} className="flex flex-col gap-1 p-4 hover:bg-page sm:flex-row sm:items-center sm:justify-between">
                 <span className="min-w-0">
-                  <span className="block truncate font-medium">{row.full_name}</span>
+                  <span className="flex items-center gap-2">
+                    <span className="truncate font-medium">{row.full_name}</span>
+                    {row.is_important && <ImportantBadge />}
+                  </span>
                   <span className="block truncate text-sm text-muted">
                     {[row.company_name, row.lead_type_name, row.country && t(`codes.country.${row.country}`)].filter(Boolean).join(' · ')}
                   </span>

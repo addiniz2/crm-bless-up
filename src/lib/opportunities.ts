@@ -26,6 +26,7 @@ export type OpportunityCard = {
   source_lead_name: string | null
   loss_reason_name: string | null
   is_late: boolean
+  is_important: boolean
 }
 
 export type CurrencyTotal = { currency: Currency; count: number; value: number }
@@ -86,4 +87,9 @@ export async function changeOpportunityStage(id: string, stage: OpportunityStage
 export function formatMoney(value: number | null, currency: Currency, locale: string): string {
   if (value === null) return '—'
   return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(value)
+}
+
+export async function setOpportunityImportant(id: string, value: boolean) {
+  const { error } = await client().from('opportunity').update({ is_important: value }).eq('id', id)
+  if (error) throw error
 }

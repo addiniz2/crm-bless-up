@@ -105,7 +105,8 @@
         "LEAD_NOT_FOUND": "Lead não encontrado.",
         "UNKNOWN": "Não foi possível mudar a etapa. Tente de novo."
       },
-      "emptyFiltered": "Nenhum lead com estes filtros."
+      "emptyFiltered": "Nenhum lead com estes filtros.",
+      "createdAt": "Entrada: {{date}}"
     },
     "opportunities": {
       "title": "Oportunidades",
@@ -134,7 +135,9 @@
         "OPPORTUNITY_CLOSED": "Oportunidade fechada não muda de etapa.",
         "OPPORTUNITY_NOT_FOUND": "Oportunidade não encontrada.",
         "UNKNOWN": "Não foi possível mudar a etapa. Tente de novo."
-      }
+      },
+      "createdAt": "Criada: {{date}}",
+      "importantOnly": "Só importantes"
     },
     "customers": {
       "title": "Clientes",
@@ -561,5 +564,13 @@
       "EVENT_NOT_RETRYABLE": "Este evento não pode mais ser reenviado (prazo de 7 dias da Meta).",
       "UNKNOWN": "Não foi possível reenviar. Tente de novo."
     }
+  },
+  "important": {
+    "mark": "Marcar {{name}} como importante",
+    "unmark": "Tirar a marca de importante de {{name}}",
+    "badge": "Importante",
+    "filter": "Importante",
+    "onlyImportant": "Só importantes",
+    "error": "Não foi possível mudar a marca de importante. Tente de novo."
   }
 }

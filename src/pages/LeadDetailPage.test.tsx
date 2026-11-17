@@ -36,6 +36,7 @@ const lead = {
   country: 'ES',
   instagram_handle: 'clinica.exemplo',
   is_mql: true,
+  is_important: false,
   ad_budget_fit: true,
   ad_budget_range: null,
   site_form_id: null,

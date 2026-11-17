@@ -14,7 +14,7 @@ export function FilterPanel({ active, children }: { active: number; children: Re
         {t('pages.queue.filters')}
         {active > 0 && <span className="ml-2 rounded-full bg-selected px-2 py-0.5 text-xs text-action">{active}</span>}
       </summary>
-      <div className="grid grid-cols-1 gap-3 px-4 pb-4 sm:grid-cols-3">{children}</div>
+      <div className="grid grid-cols-1 gap-3 px-4 pb-4 sm:grid-cols-2 lg:grid-cols-4">{children}</div>
     </details>
   )
 }

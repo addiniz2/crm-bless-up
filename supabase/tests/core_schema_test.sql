@@ -418,4 +418,16 @@ do $$ begin
   end if;
 end $$;
 
+-- 20261117000001: marcador Importante
+set role authenticated; select set_config('request.jwt.claim.sub','11111111-1111-1111-1111-111111111111',false);
+do $$
+declare v_lead uuid := (select id from public.lead_queue order by created_at limit 1);
+begin
+  update public.lead set is_important = true where id = v_lead;
+  if not (select is_important from public.lead_queue where id = v_lead) then raise exception 'FALHA: marcador no lead'; end if;
+  update public.opportunity set is_important = true where id = (select id from public.opportunity limit 1);
+  if not exists (select 1 from public.opportunity_board where is_important) then raise exception 'FALHA: marcador na oportunidade'; end if;
+end $$;
+reset role;
+
 select 'TODOS_OS_TESTES_OK' as resultado;

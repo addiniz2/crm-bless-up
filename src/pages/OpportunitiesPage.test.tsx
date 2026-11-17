@@ -26,6 +26,7 @@ const card: OpportunityCard = {
   id: 'o1',
   stage: 'PROPOSAL_SENT',
   monthly_value: 450,
+  is_important: false,
   currency: 'EUR',
   expected_close_date: null,
   owner_id: 'u1',

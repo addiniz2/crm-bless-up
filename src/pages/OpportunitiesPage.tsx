@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Dialog } from '../components/Dialog'
 import { Loading } from '../components/Loading'
 import { StageBoard } from '../components/StageBoard'
+import { ImportantToggle } from '../components/ImportantToggle'
 import { useToast } from '../components/Toast'
 import type { ListItem } from '../lib/leads'
 import {
@@ -13,6 +14,7 @@ import {
   formatMoney,
   getOpportunityIndicators,
   listOpportunities,
+  setOpportunityImportant,
   type CurrencyTotal,
   type OpportunityCard,
   type OpportunityError,
@@ -58,6 +60,20 @@ export function OpportunitiesPage() {
   }, [fetchAll])
 
   const toast = useToast()
+  const [importantOnly, setImportantOnly] = useState(false)
+
+  // Marcador Importante: muda na tela na hora e grava; se falhar, volta e avisa
+  async function toggleImportant(id: string, value: boolean) {
+    const flip = (on: boolean) => (list: OpportunityCard[] | null) =>
+      list?.map((card) => (card.id === id ? { ...card, is_important: on } : card)) ?? list
+    setCards(flip(value))
+    try {
+      await setOpportunityImportant(id, value)
+    } catch {
+      setCards(flip(!value))
+      toast.show(t('important.error'))
+    }
+  }
 
   async function move(card: OpportunityCard, stage: OpportunityStage) {
     if (card.stage === stage) return
@@ -109,11 +125,19 @@ export function OpportunitiesPage() {
       )}
 
       {cards && cards.length > 0 && (
+        <label className="mb-3 inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm text-ink-soft">
+          <input type="checkbox" checked={importantOnly} onChange={(e) => setImportantOnly(e.target.checked)} className="h-4 w-4" />
+          {t('pages.opportunities.importantOnly')}
+        </label>
+      )}
+
+      {cards && cards.length > 0 && (
         <StageBoard
           ariaLabel={t('pages.opportunities.title')}
           stages={OPPORTUNITY_STAGES}
-          items={cards}
+          items={importantOnly ? cards.filter((card) => card.is_important) : cards}
           stageOf={(card) => card.stage}
+          cardClassName={(card) => (card.is_important ? 'border-l-4 border-l-warning' : '')}
           stageLabel={(stage) => t(`codes.opportunityStage.${stage}`)}
           canDrag={(card) => card.stage !== 'WON' && card.stage !== 'LOST'}
           onMove={(card, stage) => void move(card, stage as OpportunityStage)}
@@ -121,7 +145,10 @@ export function OpportunitiesPage() {
             const closed = card.stage === 'WON' || card.stage === 'LOST'
             return (
               <div className={card.id === highlight ? 'rounded-md ring-2 ring-action ring-offset-2' : ''}>
-                <p className="truncate text-sm font-medium">{card.account_name}</p>
+                <div className="flex items-start gap-1">
+                  <p className="min-w-0 flex-1 truncate text-sm font-medium">{card.account_name}</p>
+                  <ImportantToggle value={card.is_important} name={card.account_name} onChange={(value) => void toggleImportant(card.id, value)} />
+                </div>
                 <p className="text-sm font-semibold text-ink-soft">{money(card.monthly_value, card.currency)}</p>
                 <p className="truncate text-xs text-muted">
                   {[card.contact_name, t(`codes.country.${card.country}`), ownerName(card.owner_id)].filter(Boolean).join(' · ')}
@@ -136,6 +163,7 @@ export function OpportunitiesPage() {
                 {card.stage === 'LOST' && card.loss_reason_name && (
                   <p className="truncate text-xs text-muted">{t('pages.opportunities.lossReason', { reason: card.loss_reason_name })}</p>
                 )}
+                <p className="truncate text-xs text-muted">{t('pages.opportunities.createdAt', { date: date.format(new Date(card.created_at)) })}</p>
                 {card.stage === 'WON' && <p className="text-xs text-healthy">{t('pages.opportunities.customer')}</p>}
                 {card.source_lead_id && (
                   <Link to={`/leads/${card.source_lead_id}`} className="mt-1 inline-flex min-h-9 items-center text-xs text-action">

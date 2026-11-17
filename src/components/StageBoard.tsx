@@ -9,6 +9,7 @@ export function StageBoard<T extends { id: string }>({
   stageOf,
   stageLabel,
   renderCard,
+  cardClassName,
   canDrag,
   onMove,
   ariaLabel,
@@ -18,6 +19,8 @@ export function StageBoard<T extends { id: string }>({
   stageOf: (item: T) => string
   stageLabel: (stage: string) => string
   renderCard: (item: T) => ReactNode
+  // Destaque visual do cartão (ex.: marcador Importante)
+  cardClassName?: (item: T) => string
   canDrag?: (item: T) => boolean
   onMove: (item: T, stage: string) => void
   ariaLabel: string
@@ -78,7 +81,7 @@ export function StageBoard<T extends { id: string }>({
           onTouchEnd={onTouchEnd}
         >
           {byStage(active).map((item) => (
-            <li key={item.id} className="rounded-lg border border-line bg-card p-3">
+            <li key={item.id} className={`rounded-lg border border-line bg-card p-3 ${cardClassName?.(item) ?? ''}`}>
               {renderCard(item)}
             </li>
           ))}
@@ -111,7 +114,7 @@ export function StageBoard<T extends { id: string }>({
                     key={item.id}
                     draggable={canDrag ? canDrag(item) : true}
                     onDragStart={(event) => event.dataTransfer.setData('text/plain', item.id)}
-                    className="cursor-grab rounded-lg border border-line bg-card p-2.5 active:cursor-grabbing"
+                    className={`cursor-grab rounded-lg border border-line bg-card p-2.5 active:cursor-grabbing ${cardClassName?.(item) ?? ''}`}
                   >
                     {renderCard(item)}
                   </li>

@@ -19,7 +19,8 @@ export function LeadFilters({
   types: ListItem[]
 }) {
   const { t } = useTranslation()
-  const active = Number(filters.owner !== 'ALL') + Number(filters.country !== '') + Number(filters.leadTypeId !== '')
+  const active =
+    Number(filters.owner !== 'ALL') + Number(filters.country !== '') + Number(filters.leadTypeId !== '') + Number(filters.importantOnly)
 
   return (
     <FilterPanel active={active}>
@@ -59,6 +60,17 @@ export function LeadFilters({
                 {item.name}
               </option>
             ))}
+          </select>
+        </label>
+        <label className="text-sm text-ink-soft">
+          {t('important.filter')}
+          <select
+            value={filters.importantOnly ? 'YES' : ''}
+            onChange={(e) => onChange({ ...filters, importantOnly: e.target.value === 'YES' })}
+            className={selectClass}
+          >
+            <option value="">{t('pages.queue.all')}</option>
+            <option value="YES">{t('important.onlyImportant')}</option>
           </select>
         </label>
     </FilterPanel>

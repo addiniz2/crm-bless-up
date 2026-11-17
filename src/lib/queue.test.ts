@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyFilters, countByTab, rowsForTab, sortRows, type QueueRow } from './queue'
+import { NO_FILTERS, applyFilters, countByTab, rowsForTab, sortRows, type QueueRow } from './queue'
 
 function row(partial: Partial<QueueRow>): QueueRow {
   return {
@@ -8,6 +8,7 @@ function row(partial: Partial<QueueRow>): QueueRow {
     company_name: null,
     country: 'ES',
     whatsapp: '34600111222',
+    is_important: false,
     stage: 'NEW',
     queue_status: 'NEW',
     owner_id: null,
@@ -70,11 +71,16 @@ describe('Minha fila', () => {
 
   it('filtra por responsável (todos, sem responsável ou a usuária), país e tipo', () => {
     const names = (filtered: QueueRow[]) => filtered.map((r) => r.full_name)
-    expect(names(applyFilters(rows, { owner: 'ALL', country: '', leadTypeId: '' }))).toEqual(['Ana', 'Bia', 'Caio', 'Duda'])
-    expect(names(applyFilters(rows, { owner: 'me', country: '', leadTypeId: '' }))).toEqual(['Ana', 'Duda'])
-    expect(names(applyFilters(rows, { owner: 'other', country: '', leadTypeId: '' }))).toEqual(['Caio'])
-    expect(names(applyFilters(rows, { owner: 'NONE', country: '', leadTypeId: '' }))).toEqual(['Bia'])
-    expect(names(applyFilters(rows, { owner: 'ALL', country: 'BR', leadTypeId: '' }))).toEqual(['Caio'])
-    expect(names(applyFilters(rows, { owner: 'ALL', country: '', leadTypeId: 't2' }))).toEqual(['Duda'])
+    expect(names(applyFilters(rows, { owner: 'ALL', country: '', leadTypeId: '', importantOnly: false }))).toEqual(['Ana', 'Bia', 'Caio', 'Duda'])
+    expect(names(applyFilters(rows, { owner: 'me', country: '', leadTypeId: '', importantOnly: false }))).toEqual(['Ana', 'Duda'])
+    expect(names(applyFilters(rows, { owner: 'other', country: '', leadTypeId: '', importantOnly: false }))).toEqual(['Caio'])
+    expect(names(applyFilters(rows, { owner: 'NONE', country: '', leadTypeId: '', importantOnly: false }))).toEqual(['Bia'])
+    expect(names(applyFilters(rows, { owner: 'ALL', country: 'BR', leadTypeId: '', importantOnly: false }))).toEqual(['Caio'])
+    expect(names(applyFilters(rows, { owner: 'ALL', country: '', leadTypeId: 't2', importantOnly: false }))).toEqual(['Duda'])
+  })
+
+  it('filtra só os marcados como importantes', () => {
+    const list = [row({ full_name: 'Marcado', is_important: true }), row({ full_name: 'Comum' })]
+    expect(applyFilters(list, { ...NO_FILTERS, importantOnly: true }).map((r) => r.full_name)).toEqual(['Marcado'])
   })
 })

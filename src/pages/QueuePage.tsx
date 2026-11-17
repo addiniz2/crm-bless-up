@@ -6,6 +6,7 @@ import { useAuth } from '../auth/context'
 import { ContactDialog, ConversationDialog } from '../components/LeadActionDialogs'
 import { LeadFilters } from '../components/LeadFilters'
 import { Loading } from '../components/Loading'
+import { ImportantToggle } from '../components/ImportantToggle'
 import { useToast } from '../components/Toast'
 import { listLeadTypes, type ListItem } from '../lib/leads'
 import {
@@ -17,6 +18,7 @@ import {
   listQueue,
   listUsers,
   rowsForTab,
+  setLeadImportant,
   saveSort,
   savedSort,
   QUEUE_SORTS,
@@ -77,6 +79,18 @@ export function QueuePage() {
   const date = new Intl.DateTimeFormat(i18n.language, { day: '2-digit', month: '2-digit', year: 'numeric' })
 
   const toast = useToast()
+
+  // Marcador Importante: muda na tela na hora e grava; se falhar, volta e avisa
+  async function toggleImportant(id: string, value: boolean) {
+    const flip = (list: QueueRow[] | null) => list?.map((row) => (row.id === id ? { ...row, is_important: value } : row)) ?? list
+    setRows(flip)
+    try {
+      await setLeadImportant(id, value)
+    } catch {
+      setRows((list) => list?.map((row) => (row.id === id ? { ...row, is_important: !value } : row)) ?? list)
+      toast.show(t('important.error'))
+    }
+  }
 
   async function change(action: () => Promise<void>, successKey: string) {
     setSaveFailed(false)
@@ -166,10 +180,12 @@ export function QueuePage() {
           {visible.map((row) => (
             <li
               key={row.id}
-              className={`rounded-card border bg-card p-4 ${row.owner_id === null ? 'border-warning' : 'border-line'}`}
+              className={`rounded-card border bg-card p-4 ${row.owner_id === null ? 'border-warning' : 'border-line'} ${row.is_important ? 'border-l-4 border-l-warning' : ''}`}
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="min-w-0">
+                <div className="flex min-w-0 items-start gap-1">
+                  <ImportantToggle value={row.is_important} name={row.full_name} onChange={(value) => void toggleImportant(row.id, value)} />
+                  <div className="min-w-0">
                   <Link to={`/leads/${row.id}`} state={{ from: '/' }} className="block truncate font-medium text-action underline-offset-2 hover:underline">
                     {row.full_name}
                   </Link>
@@ -178,6 +194,7 @@ export function QueuePage() {
                       .filter(Boolean)
                       .join(' · ')}
                   </p>
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-1 text-xs">
                   {row.owner_id === null && (

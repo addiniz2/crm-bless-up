@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Dialog } from '../components/Dialog'
 import { MetaEventsCard } from '../components/MetaEventsCard'
+import { ImportantBadge, ImportantToggle } from '../components/ImportantToggle'
 import { useToast } from '../components/Toast'
 import { ContactDialog, ConversationDialog, DeliveryConfirmation } from '../components/LeadActionDialogs'
 import { currencyOf } from '../lib/leads'
@@ -16,7 +17,7 @@ import {
 } from '../lib/leadDetail'
 import { DIAL_CODE, PHONE_COUNTRIES, composeWhatsapp, formatNational, formatStoredWhatsapp, type PhoneCountry } from '../lib/phone'
 import { BOARD_STAGES, changeLeadStage, listReasons, type StageError } from '../lib/pipeline'
-import { listUsers, type AppUser } from '../lib/queue'
+import { listUsers, setLeadImportant, type AppUser } from '../lib/queue'
 import type { ListItem, SaveError } from '../lib/leads'
 
 type Panel = 'conversation' | 'contact' | 'disqualify' | 'editContact' | 'convert' | null
@@ -48,6 +49,16 @@ export function LeadDetailPage() {
   const [panel, setPanel] = useState<Panel>(null)
   const [stageError, setStageError] = useState<StageError | null>(null)
   const toast = useToast()
+
+  async function toggleImportant(value: boolean) {
+    setLead((current) => (current ? { ...current, is_important: value } : current))
+    try {
+      await setLeadImportant(id, value)
+    } catch {
+      setLead((current) => (current ? { ...current, is_important: !value } : current))
+      toast.show(t('important.error'))
+    }
+  }
 
   const fetchAll = useCallback(
     () =>
@@ -119,7 +130,13 @@ export function LeadDetailPage() {
       </Link>
 
       <header className="mb-4">
-        <h1 className="text-2xl font-semibold break-words">{lead.full_name}</h1>
+        <div className="flex items-start gap-2">
+          <h1 className="min-w-0 text-2xl font-semibold break-words">{lead.full_name}</h1>
+          {!readOnly && (
+            <ImportantToggle size="md" value={lead.is_important} name={lead.full_name} onChange={(value) => void toggleImportant(value)} />
+          )}
+          {readOnly && lead.is_important && <ImportantBadge />}
+        </div>
         <p className="mt-1 flex flex-wrap gap-2 text-sm">
           <span className="rounded-full bg-selected px-2.5 py-1 text-action">{t(`codes.leadStage.${lead.stage}`)}</span>
           {!closed && <span className="rounded-full bg-card px-2.5 py-1 text-ink-soft">{t(`codes.queueStatus.${lead.queue_status}`)}</span>}
